@@ -80,7 +80,12 @@ export default function LoginPage() {
     e.preventDefault();
     if (!validate()) return;
     setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 2000);
+    setTimeout(() => {
+      setIsLoading(false);
+      if (form.role === "volunteer") {
+        navigate("/dashboard");
+      }
+    }, 1500);
   };
 
   const selectedRole = roles.find(r => r.value === form.role);

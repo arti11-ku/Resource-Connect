@@ -241,7 +241,12 @@ export default function SignupPage() {
     e.preventDefault();
     if (!validate()) return;
     setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 2000);
+    setTimeout(() => {
+      setIsLoading(false);
+      if (form.role === "volunteer") {
+        navigate("/dashboard");
+      }
+    }, 1500);
   };
 
   const isVolunteer = form.role === "volunteer";
