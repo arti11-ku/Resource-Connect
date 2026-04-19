@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Eye, EyeOff, Mail, Lock, ChevronDown, Shield } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ChevronDown } from "lucide-react";
+import saharaLogo from "@assets/ChatGPT_Image_Apr_19,_2026,_08_38_53_PM_1776611355262.png";
 
 type Role = "reporter" | "ngo" | "admin" | "volunteer" | "donor";
 
@@ -113,13 +114,11 @@ export default function LoginPage() {
 
           <div className="px-8 py-9">
             <div className="flex flex-col items-center mb-8">
-              <div
-                className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-md mb-4"
-                style={{ background: "linear-gradient(135deg, #FF7A00, #FF9A40)" }}
-              >
-                <Shield size={26} className="text-white" />
-              </div>
-              <span className="text-xs font-bold tracking-widest text-orange-500 uppercase mb-1">Sahara</span>
+              <img
+                src={saharaLogo}
+                alt="Sahara"
+                className="w-28 h-28 object-contain mb-2"
+              />
               <h2 className="text-2xl font-bold text-gray-900 text-center">Welcome 👋</h2>
               <p className="text-gray-500 text-sm font-light text-center mt-1">Login to continue to your dashboard</p>
             </div>
