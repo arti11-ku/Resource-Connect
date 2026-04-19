@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { Eye, EyeOff, Mail, Lock, ChevronDown, Shield } from "lucide-react";
 
 type Role = "reporter" | "ngo" | "admin" | "volunteer" | "donor";
@@ -48,6 +49,7 @@ function AshokaChakra({ size = 80, opacity = 0.12 }: { size?: number; opacity?: 
 }
 
 export default function LoginPage() {
+  const [, navigate] = useLocation();
   const [form, setForm] = useState<FormState>({ email: "", password: "", role: "" });
   const [errors, setErrors] = useState<FormErrors>({});
   const [showPassword, setShowPassword] = useState(false);
@@ -304,7 +306,11 @@ export default function LoginPage() {
 
             <p className="mt-6 text-center text-sm text-gray-500">
               Don't have an account?{" "}
-              <button type="button" className="text-orange-500 hover:text-orange-600 font-semibold transition-colors">
+              <button
+                type="button"
+                onClick={() => navigate("/signup")}
+                className="text-orange-500 hover:text-orange-600 font-semibold transition-colors"
+              >
                 Sign Up
               </button>
             </p>
