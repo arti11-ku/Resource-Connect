@@ -1,4 +1,6 @@
 import { useState, useRef } from "react";
+import { motion } from "framer-motion";
+import { FadeDown, FadeUp, FadeIn, StaggerList, StaggerItem, HoverCard, MountFade, SlideInHeader, chartTooltipStyle, chartTooltipCursor } from "../lib/AnimatedComponents";
 import {
   LayoutDashboard, ClipboardList, ShieldCheck, AlertTriangle,
   BarChart2, User, LogOut, Bell, Menu, X, ChevronDown,
@@ -279,12 +281,13 @@ function StatCard({ icon: Icon, label, value, sub, color }: { icon: React.Elemen
 
 function OverviewPage({ onNavigate }: { onNavigate: (p: Page) => void }) {
   return (
-    <div className="space-y-6">
-      <div>
+    <MountFade className="space-y-6">
+      <FadeIn>
         <h2 className="text-xl font-bold text-gray-900 mb-1">Dashboard Overview</h2>
         <p className="text-sm text-gray-400">Monitor all tasks, proofs, and field activity at a glance.</p>
-      </div>
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      </FadeIn>
+
+      <StaggerList className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {[
           { icon: ClipboardList, label: "Active Tasks", value: 4, sub: "Currently running", color: "bg-orange-500", page: "tasks" as Page },
           { icon: CheckCircle2, label: "Completed", value: 3, sub: "This week", color: "bg-green-500", page: "tasks" as Page },
@@ -292,47 +295,62 @@ function OverviewPage({ onNavigate }: { onNavigate: (p: Page) => void }) {
           { icon: Flag, label: "Issues Flagged", value: 2, sub: "1 escalated", color: "bg-red-500", page: "issues" as Page },
           { icon: FileText, label: "Reports", value: 6, sub: "Generated", color: "bg-purple-500", page: "reports" as Page },
         ].map(({ icon, label, value, sub, color, page }) => (
-          <button key={label} onClick={() => onNavigate(page)}
-            className="text-left hover:scale-[1.03] active:scale-[0.98] transition-transform cursor-pointer w-full">
-            <StatCard icon={icon} label={label} value={value} sub={sub} color={color} />
-          </button>
+          <StaggerItem key={label}>
+            <motion.button
+              onClick={() => onNavigate(page)}
+              whileHover={{ scale: 1.04, y: -2 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="text-left cursor-pointer w-full"
+              style={{ display: "block" }}>
+              <StatCard icon={icon} label={label} value={value} sub={sub} color={color} />
+            </motion.button>
+          </StaggerItem>
         ))}
-      </div>
+      </StaggerList>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50">
-          <h3 className="font-bold text-gray-800 mb-3">Task Completion — 3D Bar Chart</h3>
-          <Bar3DChart data={CHART_COMPLETION} />
-        </div>
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50">
-          <h3 className="font-bold text-gray-800 mb-3">Task Status Distribution — 3D</h3>
-          <div className="flex items-center gap-6">
-            <Pie3DChart data={CHART_STATUS} />
-            <div className="space-y-2 flex-1">
-              {CHART_STATUS.map(s => (
-                <div key={s.name} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: s.color }} />
-                    <span className="text-xs text-gray-600">{s.name}</span>
+        <FadeUp>
+          <HoverCard className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50">
+            <h3 className="font-bold text-gray-800 mb-3">Task Completion — 3D Bar Chart</h3>
+            <Bar3DChart data={CHART_COMPLETION} />
+          </HoverCard>
+        </FadeUp>
+        <FadeDown delay={0.08}>
+          <HoverCard className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50">
+            <h3 className="font-bold text-gray-800 mb-3">Task Status Distribution — 3D</h3>
+            <div className="flex items-center gap-6">
+              <Pie3DChart data={CHART_STATUS} />
+              <div className="space-y-2 flex-1">
+                {CHART_STATUS.map(s => (
+                  <div key={s.name} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: s.color }} />
+                      <span className="text-xs text-gray-600">{s.name}</span>
+                    </div>
+                    <span className="text-xs font-bold text-gray-800">{s.value}</span>
                   </div>
-                  <span className="text-xs font-bold text-gray-800">{s.value}</span>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        </div>
+          </HoverCard>
+        </FadeDown>
       </div>
-      <div className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50">
-        <h3 className="font-bold text-gray-800 mb-4">Volunteer Performance</h3>
-        <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={VOLUNTEER_PERF} layout="vertical" barSize={12}>
-            <XAxis type="number" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-            <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} width={50} />
-            <Tooltip contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }} />
-            <Bar dataKey="tasks" fill={ORANGE} name="Tasks" radius={[0, 6, 6, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
+
+      <FadeUp delay={0.1}>
+        <HoverCard className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50">
+          <h3 className="font-bold text-gray-800 mb-4">Volunteer Performance</h3>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={VOLUNTEER_PERF} layout="vertical" barSize={12}>
+              <XAxis type="number" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+              <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} width={50} />
+              <Tooltip contentStyle={chartTooltipStyle} cursor={chartTooltipCursor} />
+              <Bar dataKey="tasks" fill={ORANGE} name="Tasks" radius={[0, 6, 6, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </HoverCard>
+      </FadeUp>
+    </MountFade>
   );
 }
 
@@ -367,17 +385,18 @@ function TasksPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <MountFade className="space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
+        <FadeIn>
           <h2 className="text-xl font-bold text-gray-900 mb-1">Task Monitoring</h2>
           <p className="text-sm text-gray-400">View and manage all field tasks.</p>
-        </div>
-        <button onClick={() => setShowTaskForm(v => !v)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition-all"
+        </FadeIn>
+        <motion.button onClick={() => setShowTaskForm(v => !v)}
+          whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} transition={{ duration: 0.15 }}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-semibold"
           style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }}>
           <Plus size={16} /> Add Task
-        </button>
+        </motion.button>
       </div>
 
       {showTaskForm && (
@@ -488,7 +507,7 @@ function TasksPage() {
           </table>
         </div>
       </div>
-    </div>
+    </MountFade>
   );
 }
 
@@ -523,24 +542,29 @@ function ProofsPage() {
   }
 
   return (
-    <div className="space-y-5">
-      <div>
+    <MountFade className="space-y-5">
+      <FadeIn>
         <h2 className="text-xl font-bold text-gray-900 mb-1">Proof Verification</h2>
         <p className="text-sm text-gray-400">Review uploaded proofs and approve or reject submissions.</p>
-      </div>
-      <div className="flex gap-2 flex-wrap">
-        {(["all", "pending", "approved", "rejected"] as const).map(f => (
-          <button key={f} onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-xl text-sm font-semibold capitalize transition-all ${filter === f ? "text-white shadow-sm" : "bg-white border border-gray-200 text-gray-500 hover:border-orange-300"}`}
-            style={filter === f ? { background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` } : {}}>
-            {f === "all" ? "All Proofs" : f.charAt(0).toUpperCase() + f.slice(1)}
-            {f !== "all" && <span className="ml-1.5 text-xs opacity-80">({proofs.filter(p => p.status === f).length})</span>}
-          </button>
-        ))}
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      </FadeIn>
+      <FadeIn delay={0.05}>
+        <div className="flex gap-2 flex-wrap">
+          {(["all", "pending", "approved", "rejected"] as const).map(f => (
+            <motion.button key={f} onClick={() => setFilter(f)}
+              whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+              transition={{ duration: 0.15 }}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold capitalize ${filter === f ? "text-white shadow-sm" : "bg-white border border-gray-200 text-gray-500 hover:border-orange-300"}`}
+              style={filter === f ? { background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` } : {}}>
+              {f === "all" ? "All Proofs" : f.charAt(0).toUpperCase() + f.slice(1)}
+              {f !== "all" && <span className="ml-1.5 text-xs opacity-80">({proofs.filter(p => p.status === f).length})</span>}
+            </motion.button>
+          ))}
+        </div>
+      </FadeIn>
+      <StaggerList className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {filtered.map(proof => (
-          <div key={proof.id} className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50 hover:shadow-md transition-shadow">
+          <StaggerItem key={proof.id}>
+          <HoverCard className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50">
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-xl">{proof.emoji}</div>
@@ -597,18 +621,22 @@ function ProofsPage() {
               </div>
             )}
             {proof.status === "pending" && (
-              <button onClick={() => { setActiveProof(proof); setComment(""); }}
-                className="w-full py-2 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90"
+              <motion.button
+                onClick={() => { setActiveProof(proof); setComment(""); }}
+                whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                transition={{ duration: 0.15 }}
+                className="w-full py-2 rounded-xl text-sm font-semibold text-white"
                 style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }}>
                 Review Proof
-              </button>
+              </motion.button>
             )}
-          </div>
+          </HoverCard>
+          </StaggerItem>
         ))}
         {filtered.length === 0 && (
           <div className="col-span-2 text-center py-12 text-gray-400 bg-white rounded-2xl border border-orange-50">No proofs in this category.</div>
         )}
-      </div>
+      </StaggerList>
 
       {activeProof && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.5)" }}>
@@ -672,7 +700,7 @@ function ProofsPage() {
           </div>
         </div>
       )}
-    </div>
+    </MountFade>
   );
 }
 
@@ -702,17 +730,18 @@ function IssuesPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <MountFade className="space-y-5">
       <div className="flex items-center justify-between">
-        <div>
+        <FadeIn>
           <h2 className="text-xl font-bold text-gray-900 mb-1">Issue Reporting</h2>
           <p className="text-sm text-gray-400">Flag and track issues on tasks in the field.</p>
-        </div>
-        <button onClick={() => setShowForm(v => !v)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition-all"
+        </FadeIn>
+        <motion.button onClick={() => setShowForm(v => !v)}
+          whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} transition={{ duration: 0.15 }}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-semibold"
           style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }}>
           <Flag size={15} /> Flag Issue
-        </button>
+        </motion.button>
       </div>
 
       {showForm && (
@@ -759,9 +788,10 @@ function IssuesPage() {
         </div>
       )}
 
-      <div className="space-y-4">
+      <StaggerList className="space-y-4">
         {issues.map(issue => (
-          <div key={issue.id} className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50">
+          <StaggerItem key={issue.id}>
+          <HoverCard className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50">
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-2">
                 <span className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center text-base">⚠️</span>
@@ -789,13 +819,14 @@ function IssuesPage() {
               </div>
             )}
             <p className="text-xs text-gray-400">Raised: {issue.raisedAt}</p>
-          </div>
+          </HoverCard>
+          </StaggerItem>
         ))}
         {issues.length === 0 && (
           <div className="text-center py-12 text-gray-400 bg-white rounded-2xl border border-orange-50">No issues reported.</div>
         )}
-      </div>
-    </div>
+      </StaggerList>
+    </MountFade>
   );
 }
 
@@ -952,9 +983,9 @@ function ReportsPage() {
                 <LineChart data={CHART_COMPLETION}>
                   <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <Tooltip contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }} />
-                  <Line type="monotone" dataKey="completed" stroke="#22c55e" strokeWidth={3} dot={{ fill: "#22c55e", r: 5, strokeWidth: 2, stroke: "#fff" }} name="Completed" />
-                  <Line type="monotone" dataKey="delayed" stroke={ORANGE} strokeWidth={3} dot={{ fill: ORANGE, r: 5, strokeWidth: 2, stroke: "#fff" }} name="Delayed" />
+                  <Tooltip contentStyle={chartTooltipStyle} cursor={{ stroke: "rgba(255,122,0,0.2)", strokeWidth: 1.5 }} />
+                  <Line type="monotone" dataKey="completed" stroke="#22c55e" strokeWidth={3} dot={{ fill: "#22c55e", r: 5, strokeWidth: 2, stroke: "#fff" }} activeDot={{ r: 7, strokeWidth: 2 }} name="Completed" />
+                  <Line type="monotone" dataKey="delayed" stroke={ORANGE} strokeWidth={3} dot={{ fill: ORANGE, r: 5, strokeWidth: 2, stroke: "#fff" }} activeDot={{ r: 7, strokeWidth: 2 }} name="Delayed" />
                 </LineChart>
               </ResponsiveContainer>
             </div>

@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from "react";
+import { motion } from "framer-motion";
+import { FadeDown, FadeUp, FadeIn, StaggerList, StaggerItem, HoverCard, MountFade, SlideInHeader, chartTooltipStyle, chartTooltipCursor } from "../lib/AnimatedComponents";
 import { useLocation } from "wouter";
 import {
   LayoutDashboard, CheckSquare, ClipboardList, Trophy, User, LogOut,
@@ -254,133 +256,164 @@ function DashboardPage({ onNavigate, myTasksList, totalPoints, tasksCompleted, p
   const activeTasks = myTasksList.filter(t => t.status !== "completed").length;
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-2xl p-6 text-white relative overflow-hidden"
-        style={{ background: "linear-gradient(135deg, #FF7A00 0%, #FF9A40 60%, #FFB347 100%)" }}>
-        <div className="absolute right-0 top-0 opacity-10">
-          <svg width="180" height="120" viewBox="0 0 180 120">
-            <circle cx="150" cy="20" r="60" fill="white" /><circle cx="30" cy="100" r="40" fill="white" />
-          </svg>
+    <MountFade className="space-y-6">
+      <FadeDown>
+        <div className="rounded-2xl p-6 text-white relative overflow-hidden"
+          style={{ background: "linear-gradient(135deg, #FF7A00 0%, #FF9A40 60%, #FFB347 100%)" }}>
+          <div className="absolute right-0 top-0 opacity-10">
+            <svg width="180" height="120" viewBox="0 0 180 120">
+              <circle cx="150" cy="20" r="60" fill="white" /><circle cx="30" cy="100" r="40" fill="white" />
+            </svg>
+          </div>
+          <div className="relative z-10">
+            <p className="text-orange-100 text-sm font-medium mb-1">Good morning,</p>
+            <h2 className="text-2xl font-bold mb-1">{profile.name} 👋</h2>
+            <p className="text-orange-100 text-sm">Ready to make an impact today?</p>
+            {profile.streak > 0 && (
+              <div className="flex items-center gap-2 mt-4">
+                <Flame size={16} className="text-yellow-300" />
+                <span className="text-sm font-semibold text-yellow-200">{profile.streak}-day streak — keep it going!</span>
+              </div>
+            )}
+          </div>
         </div>
-        <div className="relative z-10">
-          <p className="text-orange-100 text-sm font-medium mb-1">Good morning,</p>
-          <h2 className="text-2xl font-bold mb-1">{profile.name} 👋</h2>
-          <p className="text-orange-100 text-sm">Ready to make an impact today?</p>
-          {profile.streak > 0 && (
-            <div className="flex items-center gap-2 mt-4">
-              <Flame size={16} className="text-yellow-300" />
-              <span className="text-sm font-semibold text-yellow-200">{profile.streak}-day streak — keep it going!</span>
-            </div>
-          )}
-        </div>
-      </div>
+      </FadeDown>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <button onClick={() => onNavigate("my-tasks")} className="text-left hover:scale-[1.02] active:scale-[0.98] transition-transform">
-          <StatCard icon={CheckSquare} label="Tasks Completed" value={tasksCompleted} sub="+3 this month" color="bg-orange-100" textColor="text-orange-600" />
-        </button>
-        <button onClick={() => onNavigate("scoreboard")} className="text-left hover:scale-[1.02] active:scale-[0.98] transition-transform">
-          <StatCard icon={Star} label="Points Earned" value={totalPoints.toLocaleString()} sub="Active Volunteer tier" color="bg-yellow-100" textColor="text-yellow-600" />
-        </button>
-        <button onClick={() => onNavigate("my-tasks")} className="text-left hover:scale-[1.02] active:scale-[0.98] transition-transform">
-          <StatCard icon={ClipboardList} label="Active Tasks" value={activeTasks} sub="In progress now" color="bg-blue-100" textColor="text-blue-600" />
-        </button>
-        <button onClick={() => onNavigate("scoreboard")} className="text-left hover:scale-[1.02] active:scale-[0.98] transition-transform">
-          <StatCard icon={Trophy} label="Leaderboard Rank" value="#4" sub="Top 5% volunteer" color="bg-purple-100" textColor="text-purple-600" />
-        </button>
-      </div>
+      <StaggerList className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StaggerItem>
+          <motion.button onClick={() => onNavigate("my-tasks")} whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.18 }} className="text-left w-full">
+            <StatCard icon={CheckSquare} label="Tasks Completed" value={tasksCompleted} sub="+3 this month" color="bg-orange-100" textColor="text-orange-600" />
+          </motion.button>
+        </StaggerItem>
+        <StaggerItem>
+          <motion.button onClick={() => onNavigate("scoreboard")} whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.18 }} className="text-left w-full">
+            <StatCard icon={Star} label="Points Earned" value={totalPoints.toLocaleString()} sub="Active Volunteer tier" color="bg-yellow-100" textColor="text-yellow-600" />
+          </motion.button>
+        </StaggerItem>
+        <StaggerItem>
+          <motion.button onClick={() => onNavigate("my-tasks")} whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.18 }} className="text-left w-full">
+            <StatCard icon={ClipboardList} label="Active Tasks" value={activeTasks} sub="In progress now" color="bg-blue-100" textColor="text-blue-600" />
+          </motion.button>
+        </StaggerItem>
+        <StaggerItem>
+          <motion.button onClick={() => onNavigate("scoreboard")} whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.18 }} className="text-left w-full">
+            <StatCard icon={Trophy} label="Leaderboard Rank" value="#4" sub="Top 5% volunteer" color="bg-purple-100" textColor="text-purple-600" />
+          </motion.button>
+        </StaggerItem>
+      </StaggerList>
 
-      <div className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50">
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-sm font-bold text-gray-700">Progress to next rank</p>
-          <span className="text-xs text-orange-500 font-semibold">{totalPoints} / {nextRank} pts</span>
-        </div>
-        <div className="h-2.5 bg-orange-100 rounded-full overflow-hidden">
-          <div className="h-full rounded-full transition-all duration-700"
-            style={{ width: `${progressPct}%`, background: "linear-gradient(90deg, #FF7A00, #FFB347)" }} />
-        </div>
-        <p className="text-xs text-gray-400 mt-2">
-          You are <span className="font-semibold text-orange-600">{Math.max(0, nextRank - totalPoints)} points</span> away from <span className="font-semibold">Top 3</span>
-        </p>
-      </div>
+      <FadeUp delay={0.05}>
+        <HoverCard className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-bold text-gray-700">Progress to next rank</p>
+            <span className="text-xs text-orange-500 font-semibold">{totalPoints} / {nextRank} pts</span>
+          </div>
+          <div className="h-2.5 bg-orange-100 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${progressPct}%` }}
+              transition={{ duration: 1, ease: "easeOut", delay: 0.3 }}
+              style={{ background: "linear-gradient(90deg, #FF7A00, #FFB347)" }} />
+          </div>
+          <p className="text-xs text-gray-400 mt-2">
+            You are <span className="font-semibold text-orange-600">{Math.max(0, nextRank - totalPoints)} points</span> away from <span className="font-semibold">Top 3</span>
+          </p>
+        </HoverCard>
+      </FadeUp>
 
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-gray-900">Available Tasks</h3>
-          <button onClick={() => onNavigate("available-tasks")}
-            className="text-xs text-orange-500 font-semibold hover:text-orange-600 transition-colors flex items-center gap-1">
-            View all <ChevronRight size={14} />
-          </button>
+      <FadeUp delay={0.1}>
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-gray-900">Available Tasks</h3>
+            <motion.button onClick={() => onNavigate("available-tasks")}
+              whileHover={{ x: 3 }} transition={{ duration: 0.15 }}
+              className="text-xs text-orange-500 font-semibold hover:text-orange-600 transition-colors flex items-center gap-1">
+              View all <ChevronRight size={14} />
+            </motion.button>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {availableTasksData.slice(0, 2).map(task => (
+              <TaskCard key={task.id} task={task} accepted={false} onAccept={() => onNavigate("available-tasks")} />
+            ))}
+          </div>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {availableTasksData.slice(0, 2).map(task => (
-            <TaskCard key={task.id} task={task} accepted={false} onAccept={() => onNavigate("available-tasks")} />
-          ))}
-        </div>
-      </div>
+      </FadeUp>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-gray-900">My Tasks</h3>
-            <button onClick={() => onNavigate("my-tasks")}
-              className="text-xs text-orange-500 font-semibold hover:text-orange-600 flex items-center gap-1">
-              View all <ChevronRight size={14} />
-            </button>
-          </div>
-          <div className="space-y-3">
-            {myTasksList.slice(0, 4).map(task => {
-              const st = statusConfig[task.status];
-              const Icon = st.icon;
-              return (
-                <div key={task.id} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-orange-50/50 transition-colors border border-transparent hover:border-orange-100">
-                  <Icon size={16} className={task.status === "completed" ? "text-green-500" : task.status === "in-progress" ? "text-blue-500" : "text-yellow-500"} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-800 truncate">{task.title}</p>
-                    <p className="text-xs text-gray-400">Deadline: {task.deadline}</p>
-                  </div>
-                  <span className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-semibold ${st.cls}`}>{st.label}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <FadeUp delay={0.12}>
+          <HoverCard className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-gray-900">My Tasks</h3>
+              <motion.button onClick={() => onNavigate("my-tasks")}
+                whileHover={{ x: 3 }} transition={{ duration: 0.15 }}
+                className="text-xs text-orange-500 font-semibold hover:text-orange-600 flex items-center gap-1">
+                View all <ChevronRight size={14} />
+              </motion.button>
+            </div>
+            <div className="space-y-3">
+              {myTasksList.slice(0, 4).map(task => {
+                const st = statusConfig[task.status];
+                const Icon = st.icon;
+                return (
+                  <motion.div key={task.id}
+                    whileHover={{ x: 3, backgroundColor: "rgba(255,122,0,0.04)" }}
+                    transition={{ duration: 0.15 }}
+                    className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-transparent">
+                    <Icon size={16} className={task.status === "completed" ? "text-green-500" : task.status === "in-progress" ? "text-blue-500" : "text-yellow-500"} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-800 truncate">{task.title}</p>
+                      <p className="text-xs text-gray-400">Deadline: {task.deadline}</p>
+                    </div>
+                    <span className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-semibold ${st.cls}`}>{st.label}</span>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </HoverCard>
+        </FadeUp>
 
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-gray-900">Profile Summary</h3>
-            <button onClick={() => onNavigate("profile")}
-              className="text-xs text-orange-500 font-semibold hover:text-orange-600 flex items-center gap-1">
-              Edit <ChevronRight size={14} />
-            </button>
-          </div>
-          <div className="flex items-center gap-3 mb-4">
-            <Avatar initials={profile.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()} size="md" />
-            <div>
-              <p className="font-bold text-gray-900">{profile.name}</p>
-              <div className="flex items-center gap-1 text-xs text-gray-500">
-                <MapPin size={11} className="text-orange-400" /> {profile.location}
+        <FadeUp delay={0.16}>
+          <HoverCard className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-gray-900">Profile Summary</h3>
+              <motion.button onClick={() => onNavigate("profile")}
+                whileHover={{ x: 3 }} transition={{ duration: 0.15 }}
+                className="text-xs text-orange-500 font-semibold hover:text-orange-600 flex items-center gap-1">
+                Edit <ChevronRight size={14} />
+              </motion.button>
+            </div>
+            <div className="flex items-center gap-3 mb-4">
+              <Avatar initials={profile.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()} size="md" />
+              <div>
+                <p className="font-bold text-gray-900">{profile.name}</p>
+                <div className="flex items-center gap-1 text-xs text-gray-500">
+                  <MapPin size={11} className="text-orange-400" /> {profile.location}
+                </div>
               </div>
             </div>
-          </div>
-          {profile.skills.length > 0 && (
-            <div className="mb-4">
-              <p className="text-xs font-bold text-orange-500 uppercase tracking-widest mb-2">Skills</p>
-              <div className="flex flex-wrap gap-1.5">
-                {profile.skills.map(s => (
-                  <span key={s} className="px-2.5 py-1 rounded-full bg-orange-50 border border-orange-100 text-orange-700 text-xs font-medium">{s}</span>
-                ))}
+            {profile.skills.length > 0 && (
+              <div className="mb-4">
+                <p className="text-xs font-bold text-orange-500 uppercase tracking-widest mb-2">Skills</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {profile.skills.map(s => (
+                    <motion.span key={s}
+                      whileHover={{ scale: 1.06 }} transition={{ duration: 0.15 }}
+                      className="px-2.5 py-1 rounded-full bg-orange-50 border border-orange-100 text-orange-700 text-xs font-medium cursor-default">{s}</motion.span>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-          <button onClick={() => onNavigate("profile")}
-            className="mt-2 w-full py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 active:scale-[0.98] transition-all"
-            style={{ background: "linear-gradient(135deg, #FF7A00, #FF9A40)" }}>
-            Edit Profile
-          </button>
-        </div>
+            )}
+            <motion.button onClick={() => onNavigate("profile")}
+              whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.15 }}
+              className="mt-2 w-full py-2.5 rounded-xl text-white text-sm font-semibold"
+              style={{ background: "linear-gradient(135deg, #FF7A00, #FF9A40)" }}>
+              Edit Profile
+            </motion.button>
+          </HoverCard>
+        </FadeUp>
       </div>
-    </div>
+    </MountFade>
   );
 }
 
@@ -456,7 +489,7 @@ function MyTasksPage({ myTasksList, onUpdateStatus, onUploadProof, onAddTask }: 
   }
 
   return (
-    <div className="space-y-5">
+    <MountFade className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2">
           {(["all", "pending", "in-progress", "completed"] as const).map(f => (
@@ -521,13 +554,14 @@ function MyTasksPage({ myTasksList, onUpdateStatus, onUploadProof, onAddTask }: 
         </div>
       )}
 
-      <div className="space-y-3">
+      <StaggerList className="space-y-3">
         {filtered.map(task => {
           const st = statusConfig[task.status];
           const Icon = st.icon;
           const CategoryIcon = categoryIcons[task.category] || ClipboardList;
           return (
-            <div key={task.id} className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50 hover:shadow-md transition-shadow">
+            <StaggerItem key={task.id}>
+            <HoverCard className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50">
               <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center shrink-0 mt-0.5">
@@ -603,7 +637,8 @@ function MyTasksPage({ myTasksList, onUpdateStatus, onUploadProof, onAddTask }: 
                   )}
                 </div>
               )}
-            </div>
+            </HoverCard>
+            </StaggerItem>
           );
         })}
         {filtered.length === 0 && (
@@ -612,8 +647,8 @@ function MyTasksPage({ myTasksList, onUpdateStatus, onUploadProof, onAddTask }: 
             <p className="text-gray-500 font-medium">No tasks in this category</p>
           </div>
         )}
-      </div>
-    </div>
+      </StaggerList>
+    </MountFade>
   );
 }
 
