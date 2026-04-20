@@ -1018,7 +1018,7 @@ function ProfilePage() {
       </FadeIn>
       <FadeUp>
         <div className="bg-white rounded-2xl shadow-sm border border-orange-50 overflow-hidden">
-          <div className="h-24 relative" style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }}>
+          <div className="h-14 relative" style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }}>
             <div className="absolute inset-0 opacity-10">
               {Array.from({ length: 5 }).map((_, i) => (
                 <div key={i} className="absolute rounded-full border border-white"

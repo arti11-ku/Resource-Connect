@@ -1166,7 +1166,7 @@ function ProfilePage() {
         <p className="text-sm text-gray-400">Your reporter profile and recent actions.</p>
       </div>
       <div className="bg-white rounded-2xl shadow-sm border border-orange-50 overflow-hidden">
-        <div className="h-20 relative" style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }} />
+        <div className="h-14 relative" style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }} />
         <div className="px-6 pb-6">
           <div className="flex items-end justify-between -mt-8 mb-4">
             <div className="flex items-end gap-4">
