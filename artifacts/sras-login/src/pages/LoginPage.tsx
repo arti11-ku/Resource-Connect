@@ -104,6 +104,13 @@ export default function LoginPage() {
       }, 1200);
       return;
     }
+    if (selectedRole === "donor") {
+      setIsLoading(true);
+      setTimeout(() => {
+        window.location.href = "/donor-dashboard";
+      }, 1200);
+      return;
+    }
     if (!validate()) return;
     setIsLoading(true);
     setTimeout(() => setIsLoading(false), 1200);

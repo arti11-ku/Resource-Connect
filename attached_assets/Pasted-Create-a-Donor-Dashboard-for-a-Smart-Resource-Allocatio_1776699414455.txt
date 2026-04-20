@@ -1,0 +1,225 @@
+Create a Donor Dashboard for a Smart Resource Allocation System.
+
+IMPORTANT ROLE BEHAVIOR:
+
+* When a user signs up or logs in as a DONOR, automatically redirect them to the Donor Dashboard.
+* Ensure role-based routing so donor users always land on this dashboard after authentication.
+
+---
+
+## CORE FUNCTIONAL FEATURES
+
+1. DONOR PROFILE SYSTEM:
+
+* Automatically create donor profile using signup/signin details (name, email, phone).
+* Display profile section with:
+
+  * Donor Name
+  * Email & Phone
+  * Address (optional)
+  * Donation Preferences (optional: food, education, health, etc.)
+* Add “Edit Profile”:
+
+  * All fields editable
+  * Changes must instantly update UI and database
+
+---
+
+2. DONATION SYSTEM:
+
+* Allow donor to:
+
+  * Donate money
+  * Donate resources (food, clothes, etc.)
+* Donation form:
+
+  * Type (Money / Resource)
+  * Amount / Quantity
+  * Select NGO or "Auto Assign"
+* Auto Assign:
+
+  * System allocates donation to most urgent NGO
+
+---
+
+3. VIEW NGOs:
+
+* Show list of NGOs with:
+
+  * Name
+  * Type
+  * Location
+  * Short description
+* Add filters:
+
+  * Category (health, food, education)
+  * Urgency level
+* “Donate Now” button for each NGO
+
+---
+
+4. DONATION HISTORY:
+
+* Show all past donations:
+
+  * NGO name
+  * Donation type
+  * Amount / items
+  * Date
+  * Status (Completed / Pending)
+* Allow sorting & filtering
+
+---
+
+5. IMPACT TRACKING:
+
+* Show how donations helped:
+
+  * People benefited
+  * Area served
+* Visual display:
+
+  * Cards + charts
+
+---
+
+6. PROOF & TRANSPARENCY:
+
+* Donor can view proof submitted by NGO:
+
+  * Images/videos of work
+* Click image → open full preview (modal)
+* Show status:
+
+  * Verified / Pending
+
+---
+
+7. NOTIFICATIONS:
+
+* Notify donor when:
+
+  * Donation is used
+  * Proof is uploaded
+  * NGO updates status
+
+---
+
+8. SAVED / FAVORITE NGOs:
+
+* Allow donor to:
+
+  * Bookmark NGOs
+  * Quickly donate later
+
+---
+
+9. FULL EDITABLE SYSTEM:
+
+* Donor can edit:
+
+  * Profile
+  * Preferences
+* Updates must reflect instantly
+
+---
+
+## DASHBOARD OVERVIEW
+
+* Total Donations Made
+* NGOs Supported
+* Recent Donations
+* Impact Summary
+
+Include:
+
+* Bar Chart → Donation trends
+* Pie Chart → Donation category distribution
+
+---
+
+## UI/UX ENHANCEMENT INSTRUCTIONS (VERY IMPORTANT)
+
+I am working on the frontend of my project.
+
+DO NOT change:
+
+* Existing UI design
+* Layout structure
+* Colors
+* Components
+* Data or logic
+
+ONLY enhance UI using animations and interactions.
+
+---
+
+1. SCROLL-BASED ANIMATIONS:
+
+* Elements animate when entering viewport:
+
+  * Fade-in
+  * Slide-up
+  * Drop-down
+* Example:
+
+  * Charts should animate smoothly when visible
+
+---
+
+2. HOVER EFFECTS:
+
+* Add subtle hover effects:
+
+  * Cards → scale + shadow
+  * Buttons → smooth highlight
+  * NGO cards → interactive feel
+
+---
+
+3. TRANSITIONS:
+
+* Use smooth transitions (0.3s–0.5s)
+
+---
+
+4. GRAPH INTERACTIVITY:
+
+* On hover:
+
+  * Show tooltips (label, value, percentage)
+  * Highlight hovered section (scale/brightness)
+
+---
+
+5. CHART LIBRARY:
+
+* Use Recharts or Chart.js
+* Enable tooltips and animations
+
+---
+
+6. ANIMATION LIBRARY:
+
+* Use:
+
+  * Framer Motion (preferred)
+    OR
+  * AOS
+    OR
+  * Pure CSS animations
+
+---
+
+7. PERFORMANCE:
+
+* Ensure animations are smooth and not heavy
+* Avoid unnecessary effects
+
+---
+
+FINAL REQUIREMENT:
+
+* Do NOT redesign UI
+* Only enhance animations and interactivity
+* Maintain clean and responsive design

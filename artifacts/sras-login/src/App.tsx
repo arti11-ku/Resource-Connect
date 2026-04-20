@@ -7,6 +7,7 @@ import SignupPage from "@/pages/SignupPage";
 import VolunteerDashboard from "@/pages/VolunteerDashboard";
 import ReporterDashboard from "@/pages/ReporterDashboard";
 import NgoDashboard from "@/pages/NgoDashboard";
+import DonorDashboard from "@/pages/DonorDashboard";
 
 const queryClient = new QueryClient();
 
@@ -18,6 +19,7 @@ function Router() {
       <Route path="/dashboard" component={VolunteerDashboard} />
       <Route path="/reporter-dashboard" component={ReporterDashboard} />
       <Route path="/ngo-dashboard" component={NgoDashboard} />
+      <Route path="/donor-dashboard" component={DonorDashboard} />
       <Route component={LoginPage} />
     </Switch>
   );
