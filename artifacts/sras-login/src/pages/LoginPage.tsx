@@ -79,13 +79,15 @@ export default function LoginPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
+    const selectedRole = form.role;
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      if (form.role === "volunteer") {
-        navigate("/dashboard");
+      if (selectedRole === "volunteer") {
+        const base = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
+        window.location.href = base + "/dashboard";
       }
-    }, 1500);
+    }, 1200);
   };
 
   const selectedRole = roles.find(r => r.value === form.role);
