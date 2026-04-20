@@ -245,6 +245,23 @@ export default function SignupPage() {
       return;
     }
     if (selectedRole === "volunteer") {
+      localStorage.setItem("sahara_user", JSON.stringify({
+        name: form.fullName || "",
+        email: form.email || "",
+        phone: form.phone || "",
+        city: form.city || "",
+        state: form.state || "",
+        occupation: form.occupation || "",
+        skills: form.skills || [],
+        availability: {
+          day: form.availability.dayShift,
+          night: form.availability.nightShift,
+          weekdays: form.availability.weekdays,
+          weekends: form.availability.weekends,
+        },
+        gender: form.gender || "",
+        age: form.age || "",
+      }));
       setIsLoading(true);
       setTimeout(() => {
         window.location.href = "/dashboard";

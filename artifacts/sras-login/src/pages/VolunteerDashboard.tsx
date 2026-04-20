@@ -47,7 +47,7 @@ interface LeaderboardEntry {
   isMe?: boolean;
 }
 
-const INITIAL_PROFILE: VolunteerProfile = {
+const FALLBACK_PROFILE: VolunteerProfile = {
   name: "Priya Sharma",
   email: "priya.sharma@example.com",
   phone: "+91 98765 43210",
@@ -58,6 +58,34 @@ const INITIAL_PROFILE: VolunteerProfile = {
   joinedDate: "January 2024",
   streak: 7,
 };
+
+function getInitialProfile(): VolunteerProfile {
+  try {
+    const saved = localStorage.getItem("sahara_user");
+    if (saved) {
+      const u = JSON.parse(saved);
+      const hasData = u.name || u.email || u.city;
+      if (hasData) {
+        return {
+          name: u.name || FALLBACK_PROFILE.name,
+          email: u.email || FALLBACK_PROFILE.email,
+          phone: u.phone || FALLBACK_PROFILE.phone,
+          location: u.city && u.state
+            ? `${u.city}, ${u.state}`
+            : u.city || FALLBACK_PROFILE.location,
+          occupation: u.occupation || FALLBACK_PROFILE.occupation,
+          skills: u.skills?.length ? u.skills : FALLBACK_PROFILE.skills,
+          availability: u.availability
+            ? { day: u.availability.day, night: u.availability.night, weekdays: u.availability.weekdays, weekends: u.availability.weekends }
+            : FALLBACK_PROFILE.availability,
+          joinedDate: new Date().toLocaleString("en-IN", { month: "long", year: "numeric" }),
+          streak: 0,
+        };
+      }
+    }
+  } catch {}
+  return FALLBACK_PROFILE;
+}
 
 const INITIAL_POINTS = 1240;
 const INITIAL_TASKS_COMPLETED = 28;
@@ -214,11 +242,12 @@ function TaskCard({ task, accepted, onAccept }: { task: typeof availableTasksDat
   );
 }
 
-function DashboardPage({ onNavigate, myTasksList, totalPoints, tasksCompleted }: {
+function DashboardPage({ onNavigate, myTasksList, totalPoints, tasksCompleted, profile }: {
   onNavigate: (p: Page) => void;
   myTasksList: MyTaskItem[];
   totalPoints: number;
   tasksCompleted: number;
+  profile: VolunteerProfile;
 }) {
   const nextRank = 1360;
   const progressPct = Math.min(100, Math.round((totalPoints / nextRank) * 100));
@@ -235,12 +264,14 @@ function DashboardPage({ onNavigate, myTasksList, totalPoints, tasksCompleted }:
         </div>
         <div className="relative z-10">
           <p className="text-orange-100 text-sm font-medium mb-1">Good morning,</p>
-          <h2 className="text-2xl font-bold mb-1">Priya Sharma 👋</h2>
+          <h2 className="text-2xl font-bold mb-1">{profile.name} 👋</h2>
           <p className="text-orange-100 text-sm">Ready to make an impact today?</p>
-          <div className="flex items-center gap-2 mt-4">
-            <Flame size={16} className="text-yellow-300" />
-            <span className="text-sm font-semibold text-yellow-200">7-day streak — keep it going!</span>
-          </div>
+          {profile.streak > 0 && (
+            <div className="flex items-center gap-2 mt-4">
+              <Flame size={16} className="text-yellow-300" />
+              <span className="text-sm font-semibold text-yellow-200">{profile.streak}-day streak — keep it going!</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -316,22 +347,24 @@ function DashboardPage({ onNavigate, myTasksList, totalPoints, tasksCompleted }:
             </button>
           </div>
           <div className="flex items-center gap-3 mb-4">
-            <Avatar initials="PS" size="md" />
+            <Avatar initials={profile.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()} size="md" />
             <div>
-              <p className="font-bold text-gray-900">Priya Sharma</p>
+              <p className="font-bold text-gray-900">{profile.name}</p>
               <div className="flex items-center gap-1 text-xs text-gray-500">
-                <MapPin size={11} className="text-orange-400" /> Mumbai, Maharashtra
+                <MapPin size={11} className="text-orange-400" /> {profile.location}
               </div>
             </div>
           </div>
-          <div className="mb-4">
-            <p className="text-xs font-bold text-orange-500 uppercase tracking-widest mb-2">Skills</p>
-            <div className="flex flex-wrap gap-1.5">
-              {["First Aid", "Teaching", "Counseling", "Driving"].map(s => (
-                <span key={s} className="px-2.5 py-1 rounded-full bg-orange-50 border border-orange-100 text-orange-700 text-xs font-medium">{s}</span>
-              ))}
+          {profile.skills.length > 0 && (
+            <div className="mb-4">
+              <p className="text-xs font-bold text-orange-500 uppercase tracking-widest mb-2">Skills</p>
+              <div className="flex flex-wrap gap-1.5">
+                {profile.skills.map(s => (
+                  <span key={s} className="px-2.5 py-1 rounded-full bg-orange-50 border border-orange-100 text-orange-700 text-xs font-medium">{s}</span>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
           <button onClick={() => onNavigate("profile")}
             className="mt-2 w-full py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 active:scale-[0.98] transition-all"
             style={{ background: "linear-gradient(135deg, #FF7A00, #FF9A40)" }}>
@@ -866,11 +899,16 @@ export default function VolunteerDashboard() {
   const [myTasksList, setMyTasksList] = useState<MyTaskItem[]>(INITIAL_MY_TASKS);
   const [totalPoints, setTotalPoints] = useState(INITIAL_POINTS);
   const [tasksCompleted, setTasksCompleted] = useState(INITIAL_TASKS_COMPLETED);
-  const [volunteerProfile, setVolunteerProfile] = useState<VolunteerProfile>(INITIAL_PROFILE);
+  const [volunteerProfile, setVolunteerProfile] = useState<VolunteerProfile>(getInitialProfile);
 
-  const scoreboardEntries: LeaderboardEntry[] = BASE_LEADERBOARD.map(e =>
-    e.isMe ? { ...e, points: totalPoints, tasks: tasksCompleted } : e
-  ).sort((a, b) => b.points - a.points)
+  const scoreboardEntries: LeaderboardEntry[] = BASE_LEADERBOARD.map(e => {
+    if (e.isMe) {
+      const city = volunteerProfile.location.split(",")[0]?.trim() || e.city;
+      const initials = volunteerProfile.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+      return { ...e, name: volunteerProfile.name, city, avatar: initials, points: totalPoints, tasks: tasksCompleted };
+    }
+    return e;
+  }).sort((a, b) => b.points - a.points)
     .map((e, i) => ({ ...e, rank: i + 1 }));
 
   function handleAcceptTask(id: number) {
@@ -996,7 +1034,7 @@ export default function VolunteerDashboard() {
         </header>
 
         <main className="flex-1 p-5 lg:p-6 overflow-auto">
-          {activePage === "dashboard" && <DashboardPage onNavigate={setActivePage} myTasksList={myTasksList} totalPoints={totalPoints} tasksCompleted={tasksCompleted} />}
+          {activePage === "dashboard" && <DashboardPage onNavigate={setActivePage} myTasksList={myTasksList} totalPoints={totalPoints} tasksCompleted={tasksCompleted} profile={volunteerProfile} />}
           {activePage === "available-tasks" && <AvailableTasksPage acceptedIds={acceptedIds} onAccept={handleAcceptTask} />}
           {activePage === "my-tasks" && <MyTasksPage myTasksList={myTasksList} onUpdateStatus={handleUpdateStatus} onUploadProof={handleUploadProof} />}
           {activePage === "scoreboard" && <ScoreboardPage entries={scoreboardEntries} />}
