@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
+import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock, ChevronDown } from "lucide-react";
 import saharaLogo from "@assets/ChatGPT_Image_Apr_19,_2026,_08_38_53_PM_1776611355262.png";
+import { Marquee, PulseRing } from "../lib/AnimatedComponents";
 
 type Role = "reporter" | "ngo" | "admin" | "volunteer" | "donor";
 
@@ -23,6 +25,40 @@ const roles: { value: Role; label: string; icon: string }[] = [
   { value: "admin", label: "Admin", icon: "🛡️" },
   { value: "volunteer", label: "Volunteer", icon: "🤝" },
   { value: "donor", label: "Donor", icon: "💛" },
+];
+
+const PARTNER_LOGOS = [
+  { emoji: "🏥", name: "HealthFirst NGO" },
+  { emoji: "📚", name: "Vidya Shakti" },
+  { emoji: "🌱", name: "GreenLeaf Trust" },
+  { emoji: "🍱", name: "Asha Foundation" },
+  { emoji: "💧", name: "Clean Water India" },
+  { emoji: "🤝", name: "Sahara Alliance" },
+  { emoji: "🏗️", name: "BuildHope India" },
+  { emoji: "❤️", name: "CareFirst Trust" },
+  { emoji: "🌟", name: "Bright Future NGO" },
+  { emoji: "🌾", name: "AgroRelief Fund" },
+];
+
+const NAMES_TICKER = [
+  "📝 Reporters",
+  "🏛️ NGOs",
+  "🤝 Volunteers",
+  "💛 Donors",
+  "🛡️ Admins",
+  "🌍 Communities",
+  "❤️ Changemakers",
+  "🌟 Beneficiaries",
+  "📊 Data Analysts",
+  "🙌 Partners",
+];
+
+const STATS = [
+  { value: "1,200+", label: "Volunteers" },
+  { value: "340+", label: "NGOs" },
+  { value: "₹4.2Cr", label: "Donations" },
+  { value: "28", label: "Districts" },
+  { value: "96K+", label: "Lives Impacted" },
 ];
 
 function AshokaChakra({ size = 80, opacity = 0.12 }: { size?: number; opacity?: number }) {
@@ -125,27 +161,87 @@ export default function LoginPage() {
 
   const selectedRole = roles.find(r => r.value === form.role);
 
+  const partnerItems = PARTNER_LOGOS.map(p => (
+    <div className="flex items-center gap-2 px-4 py-2 bg-white/70 backdrop-blur-sm rounded-full border border-orange-100 shadow-sm">
+      <span className="text-base">{p.emoji}</span>
+      <span className="text-xs font-semibold text-gray-600 whitespace-nowrap">{p.name}</span>
+    </div>
+  ));
+
+  const nameItems = NAMES_TICKER.map(name => (
+    <span className="text-xs font-semibold text-orange-400/80 whitespace-nowrap px-3">{name}</span>
+  ));
+
   return (
     <div
-      className="min-h-screen flex items-center justify-center relative overflow-hidden"
+      className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden"
       style={{ background: "linear-gradient(145deg, #FFF8F2 0%, #FFF0E0 50%, #FFE8CC 100%)" }}
     >
       <div className="absolute inset-0 chakra-pattern" />
 
-      <div className="absolute top-8 right-10 animate-spin-slow pointer-events-none">
+      <motion.div
+        className="absolute top-8 right-10 pointer-events-none"
+        animate={{ rotate: 360 }}
+        transition={{ duration: 60, ease: "linear", repeat: Infinity }}
+      >
         <AshokaChakra size={110} opacity={0.09} />
-      </div>
+      </motion.div>
       <div className="absolute bottom-10 left-10 pointer-events-none">
         <AshokaChakra size={80} opacity={0.07} />
       </div>
       <div className="absolute top-1/2 left-6 -translate-y-1/2 pointer-events-none">
         <AshokaChakra size={52} opacity={0.05} />
       </div>
-      <div className="absolute bottom-24 right-16 pointer-events-none">
+      <motion.div
+        className="absolute bottom-24 right-16 pointer-events-none"
+        animate={{ rotate: -360 }}
+        transition={{ duration: 80, ease: "linear", repeat: Infinity }}
+      >
         <AshokaChakra size={44} opacity={0.06} />
-      </div>
+      </motion.div>
 
-      <div className="relative z-10 w-full max-w-md mx-4">
+      {/* Floating stat badges */}
+      <motion.div
+        className="absolute top-16 left-1/2 -translate-x-1/2 flex gap-3 pointer-events-none"
+        initial={{ opacity: 0, y: -16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.8, ease: "easeOut" }}
+      >
+        {STATS.map((s, i) => (
+          <motion.div
+            key={s.label}
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.9 + i * 0.1, duration: 0.4 }}
+            className="hidden lg:flex flex-col items-center px-3 py-1.5 bg-white/60 backdrop-blur-sm rounded-xl border border-orange-100 shadow-sm"
+          >
+            <span className="text-sm font-black" style={{ color: "#FF7A00" }}>{s.value}</span>
+            <span className="text-[10px] text-gray-500 font-medium">{s.label}</span>
+          </motion.div>
+        ))}
+      </motion.div>
+
+      {/* Roles names ticker — above card */}
+      <motion.div
+        className="w-full max-w-lg mb-3 relative z-10"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4, duration: 0.5 }}
+      >
+        <div className="flex items-center justify-center gap-2 mb-1">
+          <PulseRing color="#FF7A00" size={6} />
+          <span className="text-[11px] text-gray-400 font-medium tracking-wide uppercase">Platform for</span>
+        </div>
+        <Marquee items={nameItems} speed={22} gap={4} fadeEdges />
+      </motion.div>
+
+      {/* Main Login Card */}
+      <motion.div
+        className="relative z-10 w-full max-w-md mx-4"
+        initial={{ opacity: 0, y: 32, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      >
         <div className="bg-white rounded-2xl shadow-xl border border-orange-100 overflow-visible">
           <div
             className="h-1.5 w-full rounded-t-2xl"
@@ -154,10 +250,13 @@ export default function LoginPage() {
 
           <div className="px-8 py-9">
             <div className="flex flex-col items-center mb-8">
-              <img
+              <motion.img
                 src={saharaLogo}
                 alt="Sahara"
                 className="w-28 h-28 object-contain mb-2"
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.3, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               />
               <h2 className="text-2xl font-bold text-gray-900 text-center">Welcome 👋</h2>
               <p className="text-gray-500 text-sm font-light text-center mt-1">Login to continue to your dashboard</p>
@@ -180,13 +279,18 @@ export default function LoginPage() {
                       setForm(f => ({ ...f, email: e.target.value }));
                       if (errors.email) setErrors(er => ({ ...er, email: undefined }));
                     }}
-                    className={`input-focus-orange w-full pl-10 pr-4 py-3 rounded-xl border bg-white text-sm text-gray-800 placeholder-gray-400 transition-all duration-200 outline-none
-                      ${errors.email ? "border-red-400 bg-red-50/50" : "border-orange-200 hover:border-orange-300"}`}
+                    className={`input-focus-orange w-full pl-10 pr-4 py-3 rounded-xl border bg-white text-sm text-gray-800 placeholder-gray-400 transition-all duration-300 outline-none
+                      ${errors.email ? "border-red-400 bg-red-50/50" : "border-orange-200 hover:border-orange-400 hover:shadow-sm"}`}
                   />
                 </div>
-                {errors.email && (
-                  <p className="mt-1.5 text-xs text-red-500 ml-0.5">{errors.email}</p>
-                )}
+                <AnimatePresence>
+                  {errors.email && (
+                    <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                      className="mt-1.5 text-xs text-red-500 ml-0.5">
+                      {errors.email}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
               </div>
 
               <div>
@@ -205,28 +309,36 @@ export default function LoginPage() {
                       setForm(f => ({ ...f, password: e.target.value }));
                       if (errors.password) setErrors(er => ({ ...er, password: undefined }));
                     }}
-                    className={`input-focus-orange w-full pl-10 pr-11 py-3 rounded-xl border bg-white text-sm text-gray-800 placeholder-gray-400 transition-all duration-200 outline-none
-                      ${errors.password ? "border-red-400 bg-red-50/50" : "border-orange-200 hover:border-orange-300"}`}
+                    className={`input-focus-orange w-full pl-10 pr-11 py-3 rounded-xl border bg-white text-sm text-gray-800 placeholder-gray-400 transition-all duration-300 outline-none
+                      ${errors.password ? "border-red-400 bg-red-50/50" : "border-orange-200 hover:border-orange-400 hover:shadow-sm"}`}
                   />
-                  <button
+                  <motion.button
                     type="button"
+                    whileHover={{ scale: 1.12 }}
+                    whileTap={{ scale: 0.9 }}
                     onClick={() => setShowPassword(v => !v)}
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-500 transition-colors"
                     tabIndex={-1}
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
+                  </motion.button>
                 </div>
-                {errors.password && (
-                  <p className="mt-1.5 text-xs text-red-500 ml-0.5">{errors.password}</p>
-                )}
+                <AnimatePresence>
+                  {errors.password && (
+                    <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                      className="mt-1.5 text-xs text-red-500 ml-0.5">
+                      {errors.password}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
                 <div className="flex justify-end mt-1.5">
-                  <button
+                  <motion.button
                     type="button"
+                    whileHover={{ x: 2 }}
                     className="text-xs text-orange-500 hover:text-orange-600 font-medium transition-colors"
                   >
                     Forgot Password?
-                  </button>
+                  </motion.button>
                 </div>
               </div>
 
@@ -235,11 +347,12 @@ export default function LoginPage() {
                   Select Your Role
                 </label>
                 <div className="relative">
-                  <button
+                  <motion.button
                     type="button"
+                    whileHover={{ borderColor: "#FF7A00" }}
                     onClick={() => setRoleOpen(v => !v)}
-                    className={`input-focus-orange w-full flex items-center justify-between pl-4 pr-3.5 py-3 rounded-xl border bg-white text-sm transition-all duration-200 outline-none
-                      ${errors.role ? "border-red-400 bg-red-50/50" : "border-orange-200 hover:border-orange-300"}
+                    className={`input-focus-orange w-full flex items-center justify-between pl-4 pr-3.5 py-3 rounded-xl border bg-white text-sm transition-all duration-300 outline-none
+                      ${errors.role ? "border-red-400 bg-red-50/50" : "border-orange-200 hover:border-orange-400 hover:shadow-sm"}
                       ${selectedRole ? "text-gray-800" : "text-gray-400"}`}
                   >
                     <span className="flex items-center gap-2">
@@ -252,45 +365,74 @@ export default function LoginPage() {
                         "Choose your role..."
                       )}
                     </span>
-                    <ChevronDown
-                      size={16}
-                      className={`text-orange-400 transition-transform duration-200 ${roleOpen ? "rotate-180" : ""}`}
-                    />
-                  </button>
+                    <motion.span
+                      animate={{ rotate: roleOpen ? 180 : 0 }}
+                      transition={{ duration: 0.25 }}
+                    >
+                      <ChevronDown size={16} className="text-orange-400" />
+                    </motion.span>
+                  </motion.button>
 
-                  {roleOpen && (
-                    <div className="absolute z-20 w-full mt-1.5 bg-white border border-orange-100 rounded-xl shadow-lg overflow-hidden">
-                      {roles.map(role => (
-                        <button
-                          key={role.value}
-                          type="button"
-                          onClick={() => {
-                            setForm(f => ({ ...f, role: role.value }));
-                            setRoleOpen(false);
-                            if (errors.role) setErrors(er => ({ ...er, role: undefined }));
-                          }}
-                          className={`w-full flex items-center gap-3 px-4 py-3 text-sm text-left transition-colors hover:bg-orange-50
-                            ${form.role === role.value ? "bg-orange-50 text-orange-700 font-medium" : "text-gray-700"}`}
-                        >
-                          <span className="text-base">{role.icon}</span>
-                          <span>{role.label}</span>
-                          {form.role === role.value && (
-                            <span className="ml-auto text-orange-500 text-xs">✓</span>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                  <AnimatePresence>
+                    {roleOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -6, scaleY: 0.92 }}
+                        animate={{ opacity: 1, y: 0, scaleY: 1 }}
+                        exit={{ opacity: 0, y: -6, scaleY: 0.92 }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
+                        style={{ transformOrigin: "top" }}
+                        className="absolute z-20 w-full mt-1.5 bg-white border border-orange-100 rounded-xl shadow-lg overflow-hidden"
+                      >
+                        {roles.map((role, i) => (
+                          <motion.button
+                            key={role.value}
+                            type="button"
+                            initial={{ opacity: 0, x: -8 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: i * 0.04 }}
+                            whileHover={{ backgroundColor: "#FFF7ED", x: 4 }}
+                            onClick={() => {
+                              setForm(f => ({ ...f, role: role.value }));
+                              setRoleOpen(false);
+                              if (errors.role) setErrors(er => ({ ...er, role: undefined }));
+                            }}
+                            className={`w-full flex items-center gap-3 px-4 py-3 text-sm text-left transition-colors
+                              ${form.role === role.value ? "bg-orange-50 text-orange-700 font-medium" : "text-gray-700"}`}
+                          >
+                            <span className="text-base">{role.icon}</span>
+                            <span>{role.label}</span>
+                            {form.role === role.value && (
+                              <motion.span
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className="ml-auto text-orange-500 text-xs"
+                              >
+                                ✓
+                              </motion.span>
+                            )}
+                          </motion.button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-                {errors.role && (
-                  <p className="mt-1.5 text-xs text-red-500 ml-0.5">{errors.role}</p>
-                )}
+                <AnimatePresence>
+                  {errors.role && (
+                    <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                      className="mt-1.5 text-xs text-red-500 ml-0.5">
+                      {errors.role}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
               </div>
 
-              <button
+              <motion.button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3.5 rounded-xl text-white font-semibold text-sm tracking-wide transition-all duration-200 hover:opacity-90 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed shadow-md hover:shadow-lg mt-1"
+                whileHover={!isLoading ? { scale: 1.02, boxShadow: "0 8px 24px rgba(255,122,0,0.35)" } : {}}
+                whileTap={!isLoading ? { scale: 0.97 } : {}}
+                transition={{ duration: 0.2 }}
+                className="w-full py-3.5 rounded-xl text-white font-semibold text-sm tracking-wide transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed shadow-md mt-1"
                 style={{
                   background: isLoading
                     ? "linear-gradient(135deg, #FF9A40, #FFB347)"
@@ -308,7 +450,7 @@ export default function LoginPage() {
                 ) : (
                   "Sign In"
                 )}
-              </button>
+              </motion.button>
             </form>
 
             <div className="mt-6">
@@ -319,46 +461,59 @@ export default function LoginPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  className="flex items-center justify-center gap-2 py-2.5 px-4 border border-orange-100 rounded-xl bg-white hover:bg-orange-50 hover:border-orange-200 transition-all text-sm text-gray-700 font-medium shadow-sm"
-                >
-                  <svg viewBox="0 0 24 24" width="18" height="18">
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-                  </svg>
-                  Google
-                </button>
-                <button
-                  type="button"
-                  className="flex items-center justify-center gap-2 py-2.5 px-4 border border-orange-100 rounded-xl bg-white hover:bg-orange-50 hover:border-orange-200 transition-all text-sm text-gray-700 font-medium shadow-sm"
-                >
-                  <svg viewBox="0 0 24 24" width="18" height="18" fill="#1877F2">
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                  </svg>
-                  Facebook
-                </button>
+                {[
+                  {
+                    label: "Google",
+                    icon: (
+                      <svg viewBox="0 0 24 24" width="18" height="18">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                      </svg>
+                    ),
+                  },
+                  {
+                    label: "Facebook",
+                    icon: (
+                      <svg viewBox="0 0 24 24" width="18" height="18" fill="#1877F2">
+                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                      </svg>
+                    ),
+                  },
+                ].map(({ label, icon }) => (
+                  <motion.button
+                    key={label}
+                    type="button"
+                    whileHover={{ scale: 1.03, boxShadow: "0 4px 16px rgba(255,122,0,0.12)" }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ duration: 0.18 }}
+                    className="flex items-center justify-center gap-2 py-2.5 px-4 border border-orange-100 rounded-xl bg-white hover:bg-orange-50 hover:border-orange-200 transition-colors text-sm text-gray-700 font-medium shadow-sm"
+                  >
+                    {icon}
+                    {label}
+                  </motion.button>
+                ))}
               </div>
             </div>
 
             <p className="mt-6 text-center text-sm text-gray-500">
               Don't have an account?{" "}
-              <button
+              <motion.button
                 type="button"
+                whileHover={{ x: 2 }}
                 onClick={() => navigate("/signup")}
                 className="text-orange-500 hover:text-orange-600 font-semibold transition-colors"
               >
                 Sign Up
-              </button>
+              </motion.button>
             </p>
 
             <p className="mt-3 text-center text-xs text-gray-400 leading-relaxed">
               By continuing, you agree to Sahara's{" "}
-              <button type="button" className="text-orange-400 hover:text-orange-500 transition-colors">Terms of Service</button>
+              <motion.button whileHover={{ color: "#FF7A00" }} type="button" className="text-orange-400 hover:text-orange-500 transition-colors">Terms of Service</motion.button>
               {" "}and{" "}
-              <button type="button" className="text-orange-400 hover:text-orange-500 transition-colors">Privacy Policy</button>
+              <motion.button whileHover={{ color: "#FF7A00" }} type="button" className="text-orange-400 hover:text-orange-500 transition-colors">Privacy Policy</motion.button>
             </p>
           </div>
         </div>
@@ -366,7 +521,20 @@ export default function LoginPage() {
         <p className="text-center text-xs text-orange-400/60 mt-5 font-light">
           Smart Resource Allocation System · Sahara
         </p>
-      </div>
+      </motion.div>
+
+      {/* Partners marquee — below card */}
+      <motion.div
+        className="relative z-10 w-full mt-5 pb-4"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.7, duration: 0.5, ease: "easeOut" }}
+      >
+        <p className="text-center text-[10px] text-gray-400 font-medium uppercase tracking-widest mb-2">
+          Trusted by organisations across India
+        </p>
+        <Marquee items={partnerItems} speed={36} gap={12} fadeEdges />
+      </motion.div>
     </div>
   );
 }

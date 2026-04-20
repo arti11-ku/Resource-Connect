@@ -196,3 +196,70 @@
   background-image: radial-gradient(circle, rgba(255, 122, 0, 0.06) 1px, transparent 1px);
   background-size: 24px 24px;
 }
+
+/* ── Global smooth interactions ────────────────────────── */
+button, a, [role="button"] {
+  transition: opacity 0.2s ease, transform 0.2s ease, box-shadow 0.25s ease, background-color 0.25s ease, border-color 0.25s ease, color 0.2s ease;
+}
+
+input, textarea, select {
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.2s ease;
+}
+
+/* Hover shadow on interactive cards (non-Framer-Motion fallback) */
+.card-hover {
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease;
+}
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.10);
+}
+
+/* Table row hover highlight */
+tr {
+  transition: background-color 0.18s ease;
+}
+tr:hover {
+  background-color: rgba(255, 122, 0, 0.03);
+}
+
+/* ── Fade edge utility ──────────────────────────────────── */
+.fade-edges {
+  mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+}
+
+/* ── Smooth scrollbar ───────────────────────────────────── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 122, 0, 0.25) transparent;
+}
+*::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(255, 122, 0, 0.25);
+  border-radius: 99px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 122, 0, 0.45);
+}
+
+/* ── Focus ring ─────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid rgba(255, 122, 0, 0.5);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ── Framer-Motion: respect reduced motion ─────────────── */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

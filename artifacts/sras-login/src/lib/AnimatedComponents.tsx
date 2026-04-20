@@ -1,5 +1,5 @@
 import { motion, HTMLMotionProps } from "framer-motion";
-import { ReactNode } from "react";
+import { ReactNode, useRef, useState } from "react";
 import { fadeUp, fadeDown, fadeIn, staggerContainer, staggerItem, popIn, viewportOnce } from "./animations";
 
 export function FadeUp({ children, delay = 0, className = "" }: { children: ReactNode; delay?: number; className?: string }) {
@@ -169,3 +169,107 @@ export const chartTooltipCursor = {
   stroke: "rgba(255, 122, 0, 0.15)",
   strokeWidth: 1,
 };
+
+export function Marquee({
+  items,
+  speed = 28,
+  gap = 32,
+  direction = "left",
+  className = "",
+  fadeEdges = true,
+}: {
+  items: ReactNode[];
+  speed?: number;
+  gap?: number;
+  direction?: "left" | "right";
+  className?: string;
+  fadeEdges?: boolean;
+}) {
+  const [paused, setPaused] = useState(false);
+  const doubled = [...items, ...items];
+
+  return (
+    <div
+      className={`overflow-hidden relative ${className}`}
+      style={
+        fadeEdges
+          ? {
+              maskImage:
+                "linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)",
+              WebkitMaskImage:
+                "linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)",
+            }
+          : undefined
+      }
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <motion.div
+        animate={{ x: direction === "left" ? "-50%" : "0%" }}
+        initial={{ x: direction === "left" ? "0%" : "-50%" }}
+        transition={{
+          duration: speed,
+          ease: "linear",
+          repeat: Infinity,
+          repeatType: "loop",
+        }}
+        style={{
+          display: "flex",
+          gap,
+          width: "max-content",
+          willChange: "transform",
+          animationPlayState: paused ? "paused" : "running",
+        }}
+        className={paused ? "[animation-play-state:paused]" : ""}
+      >
+        {doubled.map((item, i) => (
+          <div key={i} className="shrink-0">
+            {item}
+          </div>
+        ))}
+      </motion.div>
+    </div>
+  );
+}
+
+export function FloatingCard({
+  children,
+  delay = 0,
+  className = "",
+}: {
+  children: ReactNode;
+  delay?: number;
+  className?: string;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20, scale: 0.92 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+export function PulseRing({
+  color = "#FF7A00",
+  size = 8,
+}: {
+  color?: string;
+  size?: number;
+}) {
+  return (
+    <span className="relative inline-flex">
+      <span
+        className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-50"
+        style={{ background: color }}
+      />
+      <span
+        className="relative inline-flex rounded-full"
+        style={{ width: size, height: size, background: color }}
+      />
+    </span>
+  );
+}
