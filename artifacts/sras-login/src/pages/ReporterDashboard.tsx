@@ -1166,15 +1166,15 @@ function ProfilePage() {
         <p className="text-sm text-gray-400">Your reporter profile and recent actions.</p>
       </div>
       <div className="bg-white rounded-2xl shadow-sm border border-orange-50 overflow-hidden">
-        <div className="h-14 relative" style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }} />
-        <div className="px-6 pb-6">
-          <div className="flex items-end justify-between -mt-8 mb-4">
-            <div className="flex items-end gap-4">
-              <div className="w-16 h-16 rounded-2xl border-4 border-white shadow-md flex items-center justify-center text-2xl font-bold text-white"
+        <div className="h-1.5" style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }} />
+        <div className="px-6 pt-5 pb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold text-white shadow-md"
                 style={{ background: `linear-gradient(135deg, ${ORANGE}, #FF5500)` }}>
                 {initials}
               </div>
-              <div className="mb-1">
+              <div>
                 <p className="text-xl font-bold text-gray-900">{profileData.name}</p>
                 <p className="text-sm text-orange-500 font-semibold">Reporter · SAHARA</p>
               </div>

@@ -777,22 +777,15 @@ function ProfilePage() {
 
       <FadeUp>
         <div className="bg-white rounded-2xl shadow-sm border border-orange-50 overflow-hidden">
-          <div className="h-14 relative" style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }}>
-            <div className="absolute inset-0 opacity-10">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="absolute rounded-full border border-white"
-                  style={{ width: 60 + i * 30, height: 60 + i * 30, right: -20, top: -20 }} />
-              ))}
-            </div>
-          </div>
-          <div className="px-6 pb-6">
-            <div className="flex items-end justify-between -mt-8 mb-5">
-              <div className="flex items-end gap-4">
-                <div className="w-16 h-16 rounded-2xl border-4 border-white shadow-md flex items-center justify-center text-2xl font-bold text-white"
+          <div className="h-1.5" style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }} />
+          <div className="px-6 pt-5 pb-6">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold text-white shadow-md"
                   style={{ background: `linear-gradient(135deg, ${ORANGE}, #FF5500)` }}>
                   {initials}
                 </div>
-                <div className="mb-1">
+                <div>
                   <p className="text-xl font-bold text-gray-900">{profile.name}</p>
                   <p className="text-sm font-semibold" style={{ color: ORANGE }}>Donor · SAHARA</p>
                 </div>

@@ -824,16 +824,12 @@ function ProfilePage({ profile, onSave }: { profile: VolunteerProfile; onSave: (
   return (
     <div className="max-w-2xl space-y-5">
       <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-orange-50">
-        <div className="h-14 relative" style={{ background: "linear-gradient(135deg, #FF7A00, #FFB347)" }}>
-          <div className="absolute inset-0 opacity-10">
-            <svg width="100%" height="100%"><pattern id="pp" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1.5" fill="white" /></pattern><rect width="100%" height="100%" fill="url(#pp)" /></svg>
-          </div>
-        </div>
-        <div className="px-6 pb-6">
-          <div className="flex items-end justify-between -mt-10 mb-5">
-            <div className="flex items-end gap-4">
-              <div className="ring-4 ring-white rounded-full"><Avatar initials={initials} size="xl" /></div>
-              <div className="pb-1">
+        <div className="h-1.5" style={{ background: "linear-gradient(135deg, #FF7A00, #FFB347)" }} />
+        <div className="px-6 pt-5 pb-6">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-4">
+              <Avatar initials={initials} size="xl" />
+              <div>
                 <h2 className="text-xl font-bold text-gray-900">{profile.name}</h2>
                 <p className="text-sm text-gray-500 flex items-center gap-1"><MapPin size={13} className="text-orange-400" />{profile.location}</p>
               </div>
