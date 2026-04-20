@@ -5,7 +5,7 @@ import {
   Bell, MapPin, Clock, Star, ChevronRight, ChevronLeft, Menu, X,
   Flame, Calendar, Filter, Settings,
   Zap, AlertCircle, CheckCircle2, Circle, RefreshCw,
-  Heart, Leaf, BookOpen, Stethoscope, Upload, Pencil, Save
+  Heart, Leaf, BookOpen, Stethoscope, Upload, Pencil, Save, Plus
 } from "lucide-react";
 import saharaLogo from "@assets/ChatGPT_Image_Apr_19,_2026,_08_38_53_PM_1776611355262.png";
 
@@ -276,10 +276,18 @@ function DashboardPage({ onNavigate, myTasksList, totalPoints, tasksCompleted, p
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={CheckSquare} label="Tasks Completed" value={tasksCompleted} sub="+3 this month" color="bg-orange-100" textColor="text-orange-600" />
-        <StatCard icon={Star} label="Points Earned" value={totalPoints.toLocaleString()} sub="Active Volunteer tier" color="bg-yellow-100" textColor="text-yellow-600" />
-        <StatCard icon={ClipboardList} label="Active Tasks" value={activeTasks} sub="In progress now" color="bg-blue-100" textColor="text-blue-600" />
-        <StatCard icon={Trophy} label="Leaderboard Rank" value="#4" sub="Top 5% volunteer" color="bg-purple-100" textColor="text-purple-600" />
+        <button onClick={() => onNavigate("my-tasks")} className="text-left hover:scale-[1.02] active:scale-[0.98] transition-transform">
+          <StatCard icon={CheckSquare} label="Tasks Completed" value={tasksCompleted} sub="+3 this month" color="bg-orange-100" textColor="text-orange-600" />
+        </button>
+        <button onClick={() => onNavigate("scoreboard")} className="text-left hover:scale-[1.02] active:scale-[0.98] transition-transform">
+          <StatCard icon={Star} label="Points Earned" value={totalPoints.toLocaleString()} sub="Active Volunteer tier" color="bg-yellow-100" textColor="text-yellow-600" />
+        </button>
+        <button onClick={() => onNavigate("my-tasks")} className="text-left hover:scale-[1.02] active:scale-[0.98] transition-transform">
+          <StatCard icon={ClipboardList} label="Active Tasks" value={activeTasks} sub="In progress now" color="bg-blue-100" textColor="text-blue-600" />
+        </button>
+        <button onClick={() => onNavigate("scoreboard")} className="text-left hover:scale-[1.02] active:scale-[0.98] transition-transform">
+          <StatCard icon={Trophy} label="Leaderboard Rank" value="#4" sub="Top 5% volunteer" color="bg-purple-100" textColor="text-purple-600" />
+        </button>
       </div>
 
       <div className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50">
@@ -417,14 +425,30 @@ function AvailableTasksPage({ acceptedIds, onAccept }: { acceptedIds: Set<number
   );
 }
 
-function MyTasksPage({ myTasksList, onUpdateStatus, onUploadProof }: {
+function MyTasksPage({ myTasksList, onUpdateStatus, onUploadProof, onAddTask }: {
   myTasksList: MyTaskItem[];
   onUpdateStatus: (id: number, status: TaskStatus) => void;
   onUploadProof: (id: number, filename: string) => void;
+  onAddTask?: (task: MyTaskItem) => void;
 }) {
   const [filter, setFilter] = useState<"all" | "pending" | "in-progress" | "completed">("all");
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [addForm, setAddForm] = useState({ title: "", category: "Healthcare", location: "", deadline: "", time: "", points: "50" });
   const fileRefs = useRef<Record<number, HTMLInputElement | null>>({});
   const filtered = filter === "all" ? myTasksList : myTasksList.filter(t => t.status === filter);
+
+  function handleAddTask() {
+    if (!addForm.title.trim()) return;
+    const newTask: MyTaskItem = {
+      id: Date.now(), title: addForm.title, category: addForm.category,
+      location: addForm.location || "TBD",
+      deadline: addForm.deadline || "TBD", time: addForm.time || "TBD",
+      status: "pending", points: Number(addForm.points) || 50,
+    };
+    onAddTask?.(newTask);
+    setAddForm({ title: "", category: "Healthcare", location: "", deadline: "", time: "", points: "50" });
+    setShowAddForm(false);
+  }
 
   function handleFileChange(taskId: number, e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -433,15 +457,69 @@ function MyTasksPage({ myTasksList, onUpdateStatus, onUploadProof }: {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap gap-2">
-        {(["all", "pending", "in-progress", "completed"] as const).map(f => (
-          <button key={f} onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-xl text-sm font-bold capitalize transition-all ${filter === f ? "text-white shadow-sm" : "bg-white text-gray-600 border border-orange-100 hover:border-orange-300"}`}
-            style={filter === f ? { background: "linear-gradient(135deg, #FF7A00, #FF9A40)" } : {}}>
-            {f.replace("-", " ")}
-          </button>
-        ))}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-2">
+          {(["all", "pending", "in-progress", "completed"] as const).map(f => (
+            <button key={f} onClick={() => setFilter(f)}
+              className={`px-4 py-2 rounded-xl text-sm font-bold capitalize transition-all ${filter === f ? "text-white shadow-sm" : "bg-white text-gray-600 border border-orange-100 hover:border-orange-300"}`}
+              style={filter === f ? { background: "linear-gradient(135deg, #FF7A00, #FF9A40)" } : {}}>
+              {f.replace("-", " ")}
+            </button>
+          ))}
+        </div>
+        <button onClick={() => setShowAddForm(v => !v)}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-bold hover:opacity-90 active:scale-95 transition-all"
+          style={{ background: "linear-gradient(135deg, #FF7A00, #FF9A40)" }}>
+          <Plus size={15} /> Add Task
+        </button>
       </div>
+
+      {showAddForm && (
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-orange-100">
+          <h3 className="font-bold text-gray-800 mb-4">Add New Task</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">Title *</label>
+              <input value={addForm.title} onChange={e => setAddForm(f => ({ ...f, title: e.target.value }))}
+                placeholder="Task title..." className="w-full px-3 py-2.5 rounded-xl border border-orange-200 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100" />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">Category</label>
+              <select value={addForm.category} onChange={e => setAddForm(f => ({ ...f, category: e.target.value }))}
+                className="w-full px-3 py-2.5 rounded-xl border border-orange-200 text-sm outline-none focus:border-orange-400 bg-white">
+                {["Healthcare", "Education", "Disaster Relief", "Environment", "Food & Nutrition"].map(c => <option key={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">Location</label>
+              <input value={addForm.location} onChange={e => setAddForm(f => ({ ...f, location: e.target.value }))}
+                placeholder="Location..." className="w-full px-3 py-2.5 rounded-xl border border-orange-200 text-sm outline-none focus:border-orange-400" />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">Deadline</label>
+              <input type="date" value={addForm.deadline} onChange={e => setAddForm(f => ({ ...f, deadline: e.target.value }))}
+                className="w-full px-3 py-2.5 rounded-xl border border-orange-200 text-sm outline-none focus:border-orange-400 bg-white" />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">Time</label>
+              <input value={addForm.time} onChange={e => setAddForm(f => ({ ...f, time: e.target.value }))}
+                placeholder="e.g. 9:00 AM – 1:00 PM" className="w-full px-3 py-2.5 rounded-xl border border-orange-200 text-sm outline-none focus:border-orange-400" />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">Points</label>
+              <input type="number" value={addForm.points} onChange={e => setAddForm(f => ({ ...f, points: e.target.value }))}
+                min="0" className="w-full px-3 py-2.5 rounded-xl border border-orange-200 text-sm outline-none focus:border-orange-400" />
+            </div>
+          </div>
+          <div className="flex gap-3 mt-4">
+            <button onClick={handleAddTask}
+              className="px-5 py-2.5 rounded-xl text-white text-sm font-bold hover:opacity-90 transition-all"
+              style={{ background: "linear-gradient(135deg, #FF7A00, #FF9A40)" }}>Add Task</button>
+            <button onClick={() => setShowAddForm(false)}
+              className="px-5 py-2.5 rounded-xl border border-orange-200 text-sm text-gray-500 hover:bg-orange-50">Cancel</button>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-3">
         {filtered.map(task => {
@@ -673,6 +751,19 @@ function ProfilePage({ profile, onSave }: { profile: VolunteerProfile; onSave: (
 
   function handleSave() {
     onSave(draft);
+    try {
+      const saved = localStorage.getItem("sahara_user");
+      const u = saved ? JSON.parse(saved) : {};
+      const updated = {
+        ...u,
+        name: draft.name,
+        email: draft.email,
+        phone: draft.phone,
+        city: draft.location,
+        occupation: draft.occupation || draft.skills[0] || "",
+      };
+      localStorage.setItem("sahara_user", JSON.stringify(updated));
+    } catch {}
     setEditing(false);
   }
   function handleCancel() {
@@ -911,6 +1002,10 @@ export default function VolunteerDashboard() {
   }).sort((a, b) => b.points - a.points)
     .map((e, i) => ({ ...e, rank: i + 1 }));
 
+  function handleAddMyTask(task: MyTaskItem) {
+    setMyTasksList(prev => [task, ...prev]);
+  }
+
   function handleAcceptTask(id: number) {
     if (acceptedIds.has(id)) return;
     const task = availableTasksData.find(t => t.id === id);
@@ -1036,7 +1131,7 @@ export default function VolunteerDashboard() {
         <main className="flex-1 p-5 lg:p-6 overflow-auto">
           {activePage === "dashboard" && <DashboardPage onNavigate={setActivePage} myTasksList={myTasksList} totalPoints={totalPoints} tasksCompleted={tasksCompleted} profile={volunteerProfile} />}
           {activePage === "available-tasks" && <AvailableTasksPage acceptedIds={acceptedIds} onAccept={handleAcceptTask} />}
-          {activePage === "my-tasks" && <MyTasksPage myTasksList={myTasksList} onUpdateStatus={handleUpdateStatus} onUploadProof={handleUploadProof} />}
+          {activePage === "my-tasks" && <MyTasksPage myTasksList={myTasksList} onUpdateStatus={handleUpdateStatus} onUploadProof={handleUploadProof} onAddTask={handleAddMyTask} />}
           {activePage === "scoreboard" && <ScoreboardPage entries={scoreboardEntries} />}
           {activePage === "profile" && <ProfilePage profile={volunteerProfile} onSave={setVolunteerProfile} />}
           {activePage === "settings" && <SettingsPage />}

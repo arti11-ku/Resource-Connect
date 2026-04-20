@@ -4,13 +4,101 @@ import {
   BarChart2, User, LogOut, Bell, Menu, X, ChevronDown,
   CheckCircle2, XCircle, Clock, Eye, Download, Flag,
   MessageSquare, Send, Filter, Search, ChevronRight,
-  FileText, TrendingUp, Users, Zap, RefreshCw, Circle
+  FileText, TrendingUp, Users, Zap, RefreshCw, Circle,
+  Upload, Plus, Pencil, Save, MapPin
 } from "lucide-react";
 import {
   BarChart, Bar, PieChart, Pie, Cell, LineChart, Line,
   XAxis, YAxis, Tooltip, ResponsiveContainer, Legend
 } from "recharts";
 import saharaLogo from "@assets/ChatGPT_Image_Apr_19,_2026,_08_38_53_PM_1776611355262.png";
+
+function Bar3DChart({ data, labelA = "Completed", labelB = "Delayed" }: {
+  data: { name: string; completed: number; delayed: number }[];
+  labelA?: string; labelB?: string;
+}) {
+  const W = 480, H = 210;
+  const padL = 28, padB = 35, padT = 15, padR = 15;
+  const chartW = W - padL - padR;
+  const chartH = H - padB - padT;
+  const depth = 7;
+  const maxVal = Math.max(...data.flatMap(d => [d.completed, d.delayed]), 1);
+  const n = data.length;
+  const groupW = chartW / n;
+  const bw = Math.min(18, groupW * 0.28);
+  const gap = 5;
+
+  function bar3D(x: number, h: number, y0: number, colorFront: string, colorTop: string, colorSide: string) {
+    if (h <= 0) return null;
+    const yTop = y0 - h;
+    return (
+      <g>
+        <rect x={x} y={yTop} width={bw} height={h} fill={colorFront} />
+        <polygon points={`${x},${yTop} ${x + depth},${yTop - depth} ${x + bw + depth},${yTop - depth} ${x + bw},${yTop}`} fill={colorTop} />
+        <polygon points={`${x + bw},${yTop} ${x + bw + depth},${yTop - depth} ${x + bw + depth},${y0 - depth} ${x + bw},${y0}`} fill={colorSide} />
+      </g>
+    );
+  }
+
+  return (
+    <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow: "visible" }}>
+      {[0.25, 0.5, 0.75, 1].map(f => {
+        const y = padT + chartH * (1 - f);
+        return (
+          <g key={f}>
+            <line x1={padL} y1={y} x2={W - padR} y2={y} stroke="#f1f5f9" strokeWidth="1" />
+            <text x={padL - 4} y={y + 3} textAnchor="end" fontSize="8" fill="#94a3b8">{Math.round(maxVal * f)}</text>
+          </g>
+        );
+      })}
+      {data.map((d, i) => {
+        const cx = padL + i * groupW + groupW / 2;
+        const y0 = padT + chartH;
+        const hA = (d.completed / maxVal) * chartH;
+        const hB = (d.delayed / maxVal) * chartH;
+        const xA = cx - bw - gap / 2;
+        const xB = cx + gap / 2;
+        return (
+          <g key={d.name}>
+            {bar3D(xA, hA, y0, "#22c55e", "#4ade80", "#15803d")}
+            {bar3D(xB, hB, y0, "#f97316", "#fb923c", "#c2410c")}
+            <text x={cx} y={H - 18} textAnchor="middle" fontSize="9" fill="#94a3b8">{d.name}</text>
+          </g>
+        );
+      })}
+      <line x1={padL} y1={padT} x2={padL} y2={padT + chartH} stroke="#e2e8f0" strokeWidth="1" />
+      <line x1={padL} y1={padT + chartH} x2={W - padR} y2={padT + chartH} stroke="#e2e8f0" strokeWidth="1" />
+      <g transform={`translate(${padL}, ${H - 12})`}>
+        <rect width="8" height="8" fill="#22c55e" rx="1.5" />
+        <text x="11" y="7" fontSize="9" fill="#64748b">{labelA}</text>
+        <rect x="70" width="8" height="8" fill="#f97316" rx="1.5" />
+        <text x="81" y="7" fontSize="9" fill="#64748b">{labelB}</text>
+      </g>
+    </svg>
+  );
+}
+
+function Pie3DChart({ data }: { data: { name: string; value: number; color: string }[] }) {
+  return (
+    <div style={{ position: "relative", display: "inline-block" }}>
+      <div style={{
+        position: "absolute", bottom: -4, left: "50%",
+        transform: "translateX(-50%)",
+        width: 110, height: 14,
+        borderRadius: "50%",
+        background: "rgba(0,0,0,0.1)",
+        filter: "blur(5px)",
+      }} />
+      <div style={{ transform: "perspective(320px) rotateX(36deg)", transformOrigin: "center bottom" }}>
+        <PieChart width={160} height={130}>
+          <Pie data={data} cx="50%" cy="52%" innerRadius={38} outerRadius={58} dataKey="value" paddingAngle={3}>
+            {data.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+          </Pie>
+        </PieChart>
+      </div>
+    </div>
+  );
+}
 
 type Page = "overview" | "tasks" | "proofs" | "issues" | "reports" | "communication" | "profile";
 type TaskStatus = "available" | "accepted" | "in-progress" | "completed";
@@ -189,7 +277,7 @@ function StatCard({ icon: Icon, label, value, sub, color }: { icon: React.Elemen
   );
 }
 
-function OverviewPage() {
+function OverviewPage({ onNavigate }: { onNavigate: (p: Page) => void }) {
   return (
     <div className="space-y-6">
       <div>
@@ -197,37 +285,28 @@ function OverviewPage() {
         <p className="text-sm text-gray-400">Monitor all tasks, proofs, and field activity at a glance.</p>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <StatCard icon={ClipboardList} label="Active Tasks" value={4} sub="Currently running" color="bg-orange-500" />
-        <StatCard icon={CheckCircle2} label="Completed" value={3} sub="This week" color="bg-green-500" />
-        <StatCard icon={Clock} label="Pending" value={2} sub="Awaiting action" color="bg-blue-500" />
-        <StatCard icon={Flag} label="Issues Flagged" value={2} sub="1 escalated" color="bg-red-500" />
-        <StatCard icon={FileText} label="Reports" value={6} sub="Generated" color="bg-purple-500" />
+        {[
+          { icon: ClipboardList, label: "Active Tasks", value: 4, sub: "Currently running", color: "bg-orange-500", page: "tasks" as Page },
+          { icon: CheckCircle2, label: "Completed", value: 3, sub: "This week", color: "bg-green-500", page: "tasks" as Page },
+          { icon: Clock, label: "Pending", value: 2, sub: "Awaiting action", color: "bg-blue-500", page: "tasks" as Page },
+          { icon: Flag, label: "Issues Flagged", value: 2, sub: "1 escalated", color: "bg-red-500", page: "issues" as Page },
+          { icon: FileText, label: "Reports", value: 6, sub: "Generated", color: "bg-purple-500", page: "reports" as Page },
+        ].map(({ icon, label, value, sub, color, page }) => (
+          <button key={label} onClick={() => onNavigate(page)}
+            className="text-left hover:scale-[1.03] active:scale-[0.98] transition-transform cursor-pointer w-full">
+            <StatCard icon={icon} label={label} value={value} sub={sub} color={color} />
+          </button>
+        ))}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50">
-          <h3 className="font-bold text-gray-800 mb-4">Task Completion (Last 6 Days)</h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={CHART_COMPLETION} barSize={14}>
-              <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} allowDecimals={false} />
-              <Tooltip contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }} />
-              <Legend iconType="circle" iconSize={8} />
-              <Bar dataKey="completed" fill="#22c55e" name="Completed" radius={[6, 6, 0, 0]} />
-              <Bar dataKey="delayed" fill="#f97316" name="Delayed" radius={[6, 6, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <h3 className="font-bold text-gray-800 mb-3">Task Completion — 3D Bar Chart</h3>
+          <Bar3DChart data={CHART_COMPLETION} />
         </div>
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50">
-          <h3 className="font-bold text-gray-800 mb-4">Task Status Distribution</h3>
+          <h3 className="font-bold text-gray-800 mb-3">Task Status Distribution — 3D</h3>
           <div className="flex items-center gap-6">
-            <ResponsiveContainer width={160} height={160}>
-              <PieChart>
-                <Pie data={CHART_STATUS} cx="50%" cy="50%" innerRadius={45} outerRadius={70} dataKey="value" paddingAngle={3}>
-                  {CHART_STATUS.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-                </Pie>
-                <Tooltip contentStyle={{ borderRadius: 12, border: "none" }} />
-              </PieChart>
-            </ResponsiveContainer>
+            <Pie3DChart data={CHART_STATUS} />
             <div className="space-y-2 flex-1">
               {CHART_STATUS.map(s => (
                 <div key={s.name} className="flex items-center justify-between">
@@ -261,20 +340,92 @@ function TasksPage() {
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
   const [volunteerFilter, setVolunteerFilter] = useState("");
   const [search, setSearch] = useState("");
+  const [showTaskForm, setShowTaskForm] = useState(false);
+  const [taskForm, setTaskForm] = useState({ title: "", description: "", volunteer: "", deadline: "", category: "Healthcare", location: "" });
+  const [extraTasks, setExtraTasks] = useState<Task[]>([]);
 
-  const filtered = MOCK_TASKS.filter(t => {
+  const allTasks = [...extraTasks, ...MOCK_TASKS];
+
+  const filtered = allTasks.filter(t => {
     if (statusFilter !== "all" && t.status !== statusFilter) return false;
     if (volunteerFilter && !t.volunteer.toLowerCase().includes(volunteerFilter.toLowerCase())) return false;
     if (search && !t.title.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
+  function handleTaskSubmit() {
+    if (!taskForm.title.trim() || !taskForm.volunteer.trim()) return;
+    const newTask: Task = {
+      id: Date.now(), title: taskForm.title, description: taskForm.description,
+      volunteer: taskForm.volunteer, status: "available",
+      deadline: taskForm.deadline || "TBD", category: taskForm.category,
+      location: taskForm.location || "TBD",
+    };
+    setExtraTasks(prev => [newTask, ...prev]);
+    setTaskForm({ title: "", description: "", volunteer: "", deadline: "", category: "Healthcare", location: "" });
+    setShowTaskForm(false);
+  }
+
   return (
     <div className="space-y-5">
-      <div>
-        <h2 className="text-xl font-bold text-gray-900 mb-1">Task Monitoring</h2>
-        <p className="text-sm text-gray-400">View-only access — reporters cannot edit tasks.</p>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 mb-1">Task Monitoring</h2>
+          <p className="text-sm text-gray-400">View and manage all field tasks.</p>
+        </div>
+        <button onClick={() => setShowTaskForm(v => !v)}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition-all"
+          style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }}>
+          <Plus size={16} /> Add Task
+        </button>
       </div>
+
+      {showTaskForm && (
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-orange-100">
+          <h3 className="font-bold text-gray-800 mb-4">Create New Task</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">Title *</label>
+              <input value={taskForm.title} onChange={e => setTaskForm(f => ({ ...f, title: e.target.value }))}
+                placeholder="Task title..." className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-orange-400" />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">Volunteer *</label>
+              <input value={taskForm.volunteer} onChange={e => setTaskForm(f => ({ ...f, volunteer: e.target.value }))}
+                placeholder="Assigned volunteer..." className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-orange-400" />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">Category</label>
+              <select value={taskForm.category} onChange={e => setTaskForm(f => ({ ...f, category: e.target.value }))}
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-orange-400 bg-white">
+                {["Healthcare", "Education", "Disaster Relief", "Environment", "Food & Nutrition"].map(c => <option key={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">Deadline</label>
+              <input type="date" value={taskForm.deadline} onChange={e => setTaskForm(f => ({ ...f, deadline: e.target.value }))}
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-orange-400 bg-white" />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">Location</label>
+              <input value={taskForm.location} onChange={e => setTaskForm(f => ({ ...f, location: e.target.value }))}
+                placeholder="Location..." className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-orange-400" />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">Description</label>
+              <input value={taskForm.description} onChange={e => setTaskForm(f => ({ ...f, description: e.target.value }))}
+                placeholder="Short description..." className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-orange-400" />
+            </div>
+          </div>
+          <div className="flex gap-3 mt-4">
+            <button onClick={handleTaskSubmit}
+              className="px-5 py-2.5 rounded-xl text-white text-sm font-bold hover:opacity-90 transition-all"
+              style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }}>Create Task</button>
+            <button onClick={() => setShowTaskForm(false)}
+              className="px-5 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-500 hover:bg-gray-50">Cancel</button>
+          </div>
+        </div>
+      )}
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[180px]">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -346,6 +497,9 @@ function ProofsPage() {
   const [activeProof, setActiveProof] = useState<Proof | null>(null);
   const [comment, setComment] = useState("");
   const [filter, setFilter] = useState<ProofStatus | "all">("all");
+  const [imageMap, setImageMap] = useState<Record<number, string>>({});
+  const [fullViewImg, setFullViewImg] = useState<string | null>(null);
+  const fileRefs = useRef<Record<number, HTMLInputElement | null>>({});
 
   const filtered = proofs.filter(p => filter === "all" || p.status === filter);
 
@@ -353,6 +507,19 @@ function ProofsPage() {
     setProofs(prev => prev.map(p => p.id === id ? { ...p, status: action, comment } : p));
     setActiveProof(null);
     setComment("");
+  }
+
+  function handleImageUpload(proofId: number, e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      if (ev.target?.result) {
+        setImageMap(prev => ({ ...prev, [proofId]: ev.target!.result as string }));
+        setProofs(prev => prev.map(p => p.id === proofId ? { ...p, fileName: file.name } : p));
+      }
+    };
+    reader.readAsDataURL(file);
   }
 
   return (
@@ -389,11 +556,41 @@ function ProofsPage() {
                 {proof.status.charAt(0).toUpperCase() + proof.status.slice(1)}
               </span>
             </div>
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50 border border-gray-100 mb-3">
-              {proof.fileType === "image" ? <Eye size={15} className="text-orange-400 shrink-0" /> : <FileText size={15} className="text-orange-400 shrink-0" />}
-              <span className="text-sm text-gray-600 truncate font-medium">{proof.fileName}</span>
+
+            {imageMap[proof.id] ? (
+              <div className="mb-3 relative group cursor-pointer rounded-xl overflow-hidden border border-orange-100"
+                onClick={() => setFullViewImg(imageMap[proof.id])}>
+                <img src={imageMap[proof.id]} alt="Proof" className="w-full h-36 object-cover" />
+                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                  <span className="text-white text-xs font-bold flex items-center gap-1.5 bg-black/50 px-3 py-1.5 rounded-full">
+                    <Eye size={13} /> View Full Image
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50 border border-gray-100 mb-3">
+                {proof.fileType === "image" ? <Eye size={15} className="text-orange-400 shrink-0" /> : <FileText size={15} className="text-orange-400 shrink-0" />}
+                <span className="text-sm text-gray-600 truncate font-medium flex-1">{proof.fileName}</span>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs text-gray-400">Uploaded: {proof.uploadedAt}</p>
+              <div className="flex items-center gap-2">
+                <input ref={el => { fileRefs.current[proof.id] = el; }} type="file" accept="image/*"
+                  className="hidden" onChange={e => handleImageUpload(proof.id, e)} />
+                <button onClick={() => fileRefs.current[proof.id]?.click()}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-dashed border-orange-300 text-orange-500 text-xs hover:bg-orange-50 transition-colors">
+                  <Upload size={11} /> {imageMap[proof.id] ? "Replace" : "Upload Image"}
+                </button>
+                {imageMap[proof.id] && (
+                  <button onClick={() => setFullViewImg(imageMap[proof.id])}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-50 border border-orange-200 text-orange-600 text-xs hover:bg-orange-100 transition-colors">
+                    <Eye size={11} /> Full View
+                  </button>
+                )}
+              </div>
             </div>
-            <p className="text-xs text-gray-400 mb-3">Uploaded: {proof.uploadedAt}</p>
             {proof.comment && (
               <div className="text-xs text-gray-500 italic bg-gray-50 rounded-lg p-2.5 mb-3 border border-gray-100">
                 💬 {proof.comment}
@@ -414,7 +611,7 @@ function ProofsPage() {
       </div>
 
       {activeProof && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.4)" }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.5)" }}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-gray-900">Review Proof</h3>
@@ -424,13 +621,25 @@ function ProofsPage() {
               <p className="font-semibold text-gray-800 text-sm">{activeProof.taskTitle}</p>
               <p className="text-xs text-gray-500 mt-0.5">By {activeProof.volunteer} · {activeProof.fileName}</p>
             </div>
-            <div className="mb-4 h-36 bg-gray-100 rounded-xl flex items-center justify-center border border-gray-200">
-              <div className="text-center">
-                <span className="text-4xl">{activeProof.emoji}</span>
-                <p className="text-xs text-gray-400 mt-2">{activeProof.fileType === "image" ? "Image preview" : "Document"}</p>
-                <p className="text-xs text-gray-500 font-medium">{activeProof.fileName}</p>
+            {imageMap[activeProof.id] ? (
+              <div className="mb-4 relative group cursor-pointer rounded-xl overflow-hidden border border-gray-200"
+                onClick={() => setFullViewImg(imageMap[activeProof.id])}>
+                <img src={imageMap[activeProof.id]} alt="Proof" className="w-full h-44 object-cover" />
+                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                  <span className="text-white text-xs font-bold bg-black/50 px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                    <Eye size={12} /> Click for Full View
+                  </span>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="mb-4 h-36 bg-gray-100 rounded-xl flex items-center justify-center border border-gray-200">
+                <div className="text-center">
+                  <span className="text-4xl">{activeProof.emoji}</span>
+                  <p className="text-xs text-gray-400 mt-2">{activeProof.fileType === "image" ? "No image uploaded yet" : "Document"}</p>
+                  <p className="text-xs text-gray-500 font-medium">{activeProof.fileName}</p>
+                </div>
+              </div>
+            )}
             <textarea
               value={comment}
               onChange={e => setComment(e.target.value)}
@@ -447,6 +656,19 @@ function ProofsPage() {
                 <XCircle size={15} /> Reject
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {fullViewImg && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.85)" }}
+          onClick={() => setFullViewImg(null)}>
+          <div className="relative max-w-3xl w-full" onClick={e => e.stopPropagation()}>
+            <button onClick={() => setFullViewImg(null)}
+              className="absolute -top-10 right-0 text-white/80 hover:text-white transition-colors flex items-center gap-1.5 text-sm">
+              <X size={18} /> Close
+            </button>
+            <img src={fullViewImg} alt="Full view" className="w-full max-h-[80vh] object-contain rounded-xl shadow-2xl" />
           </div>
         </div>
       )}
@@ -577,7 +799,19 @@ function IssuesPage() {
   );
 }
 
+interface ReportEntry {
+  id: number;
+  title: string;
+  description: string;
+  date: string;
+  category: string;
+}
+
 function ReportsPage() {
+  const [showForm, setShowForm] = useState(false);
+  const [reportForm, setReportForm] = useState({ title: "", description: "", category: "Task Summary", deadline: "" });
+  const [extraReports, setExtraReports] = useState<ReportEntry[]>([]);
+
   function downloadCSV() {
     const headers = ["Task", "Volunteer", "Status", "Deadline", "Category"];
     const rows = MOCK_TASKS.map(t => [t.title, t.volunteer, t.status, t.deadline, t.category]);
@@ -592,6 +826,20 @@ function ReportsPage() {
     window.print();
   }
 
+  function handleReportSubmit() {
+    if (!reportForm.title.trim() || !reportForm.description.trim()) return;
+    const newReport: ReportEntry = {
+      id: Date.now(),
+      title: reportForm.title,
+      description: reportForm.description,
+      date: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
+      category: reportForm.category,
+    };
+    setExtraReports(prev => [newReport, ...prev]);
+    setReportForm({ title: "", description: "", category: "Task Summary", deadline: "" });
+    setShowForm(false);
+  }
+
   const completionRate = Math.round((MOCK_TASKS.filter(t => t.status === "completed").length / MOCK_TASKS.length) * 100);
   const delayedCount = MOCK_TASKS.filter(t => t.status !== "completed" && t.status !== "in-progress").length;
 
@@ -603,15 +851,82 @@ function ReportsPage() {
           <p className="text-sm text-gray-400">Export and analyze field activity data.</p>
         </div>
         <div className="flex gap-3">
+          <button onClick={() => setShowForm(v => !v)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition-all"
+            style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }}>
+            <Plus size={16} /> New Report
+          </button>
           <button onClick={downloadCSV} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-orange-200 text-orange-600 text-sm font-semibold hover:bg-orange-50 transition-colors">
             <Download size={14} /> Download CSV
           </button>
-          <button onClick={downloadPDF} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition-all"
-            style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }}>
+          <button onClick={downloadPDF} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-orange-200 text-orange-600 text-sm font-semibold hover:bg-orange-50 transition-colors">
             <FileText size={14} /> Download PDF
           </button>
         </div>
       </div>
+
+      {showForm && (
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-orange-100">
+          <h3 className="font-bold text-gray-800 mb-4">Create New Report</h3>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">Title *</label>
+              <input value={reportForm.title} onChange={e => setReportForm(f => ({ ...f, title: e.target.value }))}
+                placeholder="Report title..."
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-orange-400 bg-white" />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">Category</label>
+              <select value={reportForm.category} onChange={e => setReportForm(f => ({ ...f, category: e.target.value }))}
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-orange-400 bg-white">
+                <option>Task Summary</option>
+                <option>Volunteer Performance</option>
+                <option>Issue Report</option>
+                <option>Field Activity</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">Description *</label>
+              <textarea value={reportForm.description} onChange={e => setReportForm(f => ({ ...f, description: e.target.value }))}
+                placeholder="Describe the report content..."
+                className="w-full p-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-orange-400 resize-none" rows={3} />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">Deadline (optional)</label>
+              <input type="date" value={reportForm.deadline} onChange={e => setReportForm(f => ({ ...f, deadline: e.target.value }))}
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-orange-400 bg-white" />
+            </div>
+            <div className="flex gap-3 pt-1">
+              <button onClick={handleReportSubmit}
+                className="px-5 py-2.5 rounded-xl text-white text-sm font-bold hover:opacity-90 transition-all"
+                style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }}>Submit Report</button>
+              <button onClick={() => setShowForm(false)}
+                className="px-5 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-500 hover:bg-gray-50">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {extraReports.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="font-bold text-gray-800 text-sm">Created Reports ({extraReports.length})</h3>
+          {extraReports.map(r => (
+            <div key={r.id} className="bg-white rounded-2xl p-4 shadow-sm border border-orange-100 flex items-start gap-3">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }}>
+                <FileText size={16} className="text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="font-bold text-gray-800 text-sm">{r.title}</p>
+                  <span className="shrink-0 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-xs font-semibold">{r.category}</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">{r.description}</p>
+                <p className="text-xs text-gray-400 mt-1">{r.date}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50 text-center">
@@ -630,16 +945,20 @@ function ReportsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50">
-          <h3 className="font-bold text-gray-800 mb-4">Daily Completion Trend</h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={CHART_COMPLETION}>
-              <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} allowDecimals={false} />
-              <Tooltip contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }} />
-              <Line type="monotone" dataKey="completed" stroke="#22c55e" strokeWidth={2.5} dot={{ fill: "#22c55e", r: 4 }} name="Completed" />
-              <Line type="monotone" dataKey="delayed" stroke={ORANGE} strokeWidth={2.5} dot={{ fill: ORANGE, r: 4 }} name="Delayed" />
-            </LineChart>
-          </ResponsiveContainer>
+          <h3 className="font-bold text-gray-800 mb-3">Daily Completion Trend — 3D</h3>
+          <div style={{ perspective: "900px" }}>
+            <div style={{ transform: "rotateX(18deg)", transformOrigin: "bottom center" }}>
+              <ResponsiveContainer width="100%" height={190}>
+                <LineChart data={CHART_COMPLETION}>
+                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <Tooltip contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }} />
+                  <Line type="monotone" dataKey="completed" stroke="#22c55e" strokeWidth={3} dot={{ fill: "#22c55e", r: 5, strokeWidth: 2, stroke: "#fff" }} name="Completed" />
+                  <Line type="monotone" dataKey="delayed" stroke={ORANGE} strokeWidth={3} dot={{ fill: ORANGE, r: 5, strokeWidth: 2, stroke: "#fff" }} name="Delayed" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </div>
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50">
           <h3 className="font-bold text-gray-800 mb-4">Volunteer Performance</h3>
@@ -772,7 +1091,33 @@ function CommunicationPage() {
 }
 
 function ProfilePage() {
-  const profile = getReporterProfile();
+  const [profileData, setProfileData] = useState(getReporterProfile);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(profileData);
+
+  function handleSave() {
+    setProfileData(draft);
+    try {
+      const saved = localStorage.getItem("sahara_user");
+      const u = saved ? JSON.parse(saved) : {};
+      const updated = {
+        ...u,
+        name: draft.name,
+        email: draft.email,
+        phone: draft.phone,
+        city: draft.location,
+        occupation: draft.occupation,
+      };
+      localStorage.setItem("sahara_user", JSON.stringify(updated));
+    } catch {}
+    setEditing(false);
+  }
+
+  function handleCancel() {
+    setDraft(profileData);
+    setEditing(false);
+  }
+
   const activityLog = [
     { icon: "✅", text: "Approved proof for 'Mid-Day Meal Support'", time: "Apr 20, 2026 · 3:00 PM" },
     { icon: "❌", text: "Rejected proof for 'Flood Relief Distribution' — blurry image", time: "Apr 21, 2026 · 11:15 AM" },
@@ -781,8 +1126,10 @@ function ProfilePage() {
     { icon: "💬", text: "Commented on 'Flood Relief Distribution'", time: "Apr 21, 2026 · 9:00 AM" },
   ];
 
+  const initials = profileData.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 max-w-2xl">
       <div>
         <h2 className="text-xl font-bold text-gray-900 mb-1">Profile & Activity</h2>
         <p className="text-sm text-gray-400">Your reporter profile and recent actions.</p>
@@ -790,29 +1137,62 @@ function ProfilePage() {
       <div className="bg-white rounded-2xl shadow-sm border border-orange-50 overflow-hidden">
         <div className="h-20 relative" style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }} />
         <div className="px-6 pb-6">
-          <div className="flex items-end gap-4 -mt-8 mb-4">
-            <div className="w-16 h-16 rounded-2xl border-4 border-white shadow-md flex items-center justify-center text-2xl font-bold text-white"
-              style={{ background: `linear-gradient(135deg, ${ORANGE}, #FF5500)` }}>
-              {profile.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()}
-            </div>
-            <div className="mb-1">
-              <p className="text-xl font-bold text-gray-900">{profile.name}</p>
-              <p className="text-sm text-orange-500 font-semibold">Reporter · SAHARA</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {[
-              { label: "Email", value: profile.email },
-              { label: "Phone", value: profile.phone },
-              { label: "Location", value: profile.location },
-              { label: "Occupation", value: profile.occupation },
-            ].map(f => (
-              <div key={f.label} className="p-3 rounded-xl bg-orange-50/50 border border-orange-100">
-                <p className="text-xs font-bold text-orange-400 uppercase tracking-wide mb-0.5">{f.label}</p>
-                <p className="text-sm text-gray-700 font-medium">{f.value}</p>
+          <div className="flex items-end justify-between -mt-8 mb-4">
+            <div className="flex items-end gap-4">
+              <div className="w-16 h-16 rounded-2xl border-4 border-white shadow-md flex items-center justify-center text-2xl font-bold text-white"
+                style={{ background: `linear-gradient(135deg, ${ORANGE}, #FF5500)` }}>
+                {initials}
               </div>
-            ))}
+              <div className="mb-1">
+                <p className="text-xl font-bold text-gray-900">{profileData.name}</p>
+                <p className="text-sm text-orange-500 font-semibold">Reporter · SAHARA</p>
+              </div>
+            </div>
+            <button onClick={() => editing ? handleCancel() : setEditing(true)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${editing ? "bg-gray-100 text-gray-600 hover:bg-gray-200" : "text-white hover:opacity-90"}`}
+              style={!editing ? { background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` } : {}}>
+              <Pencil size={14} /> {editing ? "Cancel" : "Edit Profile"}
+            </button>
           </div>
+
+          {editing ? (
+            <div className="space-y-3">
+              {[
+                { label: "Full Name", key: "name" },
+                { label: "Email", key: "email" },
+                { label: "Phone", key: "phone" },
+                { label: "Location", key: "location" },
+                { label: "Occupation", key: "occupation" },
+              ].map(({ label, key }) => (
+                <div key={key}>
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">{label}</label>
+                  <input
+                    value={(draft as Record<string, string>)[key]}
+                    onChange={e => setDraft(d => ({ ...d, [key]: e.target.value }))}
+                    className="w-full px-3 py-2.5 rounded-xl border border-orange-200 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all" />
+                </div>
+              ))}
+              <button onClick={handleSave}
+                className="w-full py-3 rounded-xl text-white font-bold text-sm hover:opacity-90 active:scale-[0.98] transition-all shadow-sm flex items-center justify-center gap-2 mt-2"
+                style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }}>
+                <Save size={15} /> Save Changes
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {[
+                { label: "Email", value: profileData.email },
+                { label: "Phone", value: profileData.phone },
+                { label: "Location", value: profileData.location },
+                { label: "Occupation", value: profileData.occupation },
+              ].map(f => (
+                <div key={f.label} className="p-3 rounded-xl bg-orange-50/50 border border-orange-100">
+                  <p className="text-xs font-bold text-orange-400 uppercase tracking-wide mb-0.5">{f.label}</p>
+                  <p className="text-sm text-gray-700 font-medium">{f.value}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -953,7 +1333,7 @@ export default function ReporterDashboard() {
         </header>
 
         <main className="flex-1 p-5 lg:p-6 overflow-auto">
-          {activePage === "overview" && <OverviewPage />}
+          {activePage === "overview" && <OverviewPage onNavigate={setActivePage} />}
           {activePage === "tasks" && <TasksPage />}
           {activePage === "proofs" && <ProofsPage />}
           {activePage === "issues" && <IssuesPage />}
