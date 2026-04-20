@@ -239,16 +239,21 @@ export default function SignupPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
     const selectedRole = form.role;
+    if (!selectedRole) {
+      setErrors({ role: "Please select your role to continue" });
+      return;
+    }
+    if (selectedRole === "volunteer") {
+      setIsLoading(true);
+      setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 1200);
+      return;
+    }
+    if (!validate()) return;
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      if (selectedRole === "volunteer") {
-        const base = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
-        window.location.href = base + "/dashboard";
-      }
-    }, 1200);
+    setTimeout(() => setIsLoading(false), 1200);
   };
 
   const isVolunteer = form.role === "volunteer";
