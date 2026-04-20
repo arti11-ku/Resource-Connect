@@ -83,6 +83,13 @@ export default function LoginPage() {
       setErrors({ role: "Please select your role to continue" });
       return;
     }
+    if (selectedRole === "reporter") {
+      setIsLoading(true);
+      setTimeout(() => {
+        window.location.href = "/reporter-dashboard";
+      }, 1200);
+      return;
+    }
     if (selectedRole === "volunteer") {
       setIsLoading(true);
       setTimeout(() => {

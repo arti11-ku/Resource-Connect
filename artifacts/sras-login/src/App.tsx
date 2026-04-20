@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import LoginPage from "@/pages/LoginPage";
 import SignupPage from "@/pages/SignupPage";
 import VolunteerDashboard from "@/pages/VolunteerDashboard";
+import ReporterDashboard from "@/pages/ReporterDashboard";
 
 const queryClient = new QueryClient();
 
@@ -14,6 +15,7 @@ function Router() {
       <Route path="/" component={LoginPage} />
       <Route path="/signup" component={SignupPage} />
       <Route path="/dashboard" component={VolunteerDashboard} />
+      <Route path="/reporter-dashboard" component={ReporterDashboard} />
       <Route component={LoginPage} />
     </Switch>
   );

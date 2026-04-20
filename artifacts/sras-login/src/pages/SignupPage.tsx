@@ -244,6 +244,22 @@ export default function SignupPage() {
       setErrors({ role: "Please select your role to continue" });
       return;
     }
+    if (selectedRole === "reporter") {
+      localStorage.setItem("sahara_user", JSON.stringify({
+        name: form.fullName || "",
+        email: form.email || "",
+        phone: form.phone || "",
+        city: form.city || "",
+        state: form.state || "",
+        occupation: form.occupation || "",
+        role: "reporter",
+      }));
+      setIsLoading(true);
+      setTimeout(() => {
+        window.location.href = "/reporter-dashboard";
+      }, 1200);
+      return;
+    }
     if (selectedRole === "volunteer") {
       localStorage.setItem("sahara_user", JSON.stringify({
         name: form.fullName || "",
