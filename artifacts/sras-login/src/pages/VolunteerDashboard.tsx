@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
 import {
   LayoutDashboard, CheckSquare, ClipboardList, Trophy, User, LogOut,
@@ -510,29 +510,48 @@ function ScoreboardPage({ entries }: { entries: LeaderboardEntry[] }) {
   const me = entries.find(e => e.isMe);
   const top1 = entries[0];
   const progressPct = me && top1 ? Math.min(100, Math.round((me.points / top1.points) * 100)) : 0;
-  const heroRef = useRef<HTMLDivElement>(null);
-  const contribRef = useRef<HTMLDivElement>(null);
+  const [heroIdx, setHeroIdx] = useState(0);
+  const VISIBLE = 3;
+  const total = entries.length;
 
-  function scrollHero(dir: number) {
-    heroRef.current?.scrollBy({ left: dir * 260, behavior: "smooth" });
-  }
-  function scrollContrib(dir: number) {
-    contribRef.current?.scrollBy({ left: dir * 180, behavior: "smooth" });
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setHeroIdx(i => (i + 1) % total);
+    }, 2500);
+    return () => clearInterval(timer);
+  }, [total]);
+
+  function getVisible() {
+    const result = [];
+    for (let i = 0; i < VISIBLE; i++) {
+      result.push(entries[(heroIdx + i) % total]);
+    }
+    return result;
   }
 
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50">
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-gray-900">Top Performers</h3>
-          <div className="flex gap-1.5">
-            <button onClick={() => scrollHero(-1)} className="p-1.5 rounded-lg hover:bg-orange-50 text-gray-500 transition-colors"><ChevronLeft size={18} /></button>
-            <button onClick={() => scrollHero(1)} className="p-1.5 rounded-lg hover:bg-orange-50 text-gray-500 transition-colors"><ChevronRight size={18} /></button>
+          <div className="flex items-center gap-2">
+            <div className="flex gap-1">
+              {entries.map((_, i) => (
+                <button key={i} onClick={() => setHeroIdx(i)}
+                  className={`w-1.5 h-1.5 rounded-full transition-colors ${i === heroIdx ? "bg-orange-500" : "bg-orange-200"}`} />
+              ))}
+            </div>
+            <div className="flex gap-1">
+              <button onClick={() => setHeroIdx(i => (i - 1 + total) % total)} className="p-1.5 rounded-lg hover:bg-orange-50 text-gray-500 transition-colors"><ChevronLeft size={18} /></button>
+              <button onClick={() => setHeroIdx(i => (i + 1) % total)} className="p-1.5 rounded-lg hover:bg-orange-50 text-gray-500 transition-colors"><ChevronRight size={18} /></button>
+            </div>
           </div>
         </div>
-        <div ref={heroRef} className="flex gap-4 overflow-x-auto pb-2 scroll-smooth" style={{ scrollbarWidth: "none" }}>
-          {entries.slice(0, 5).map(entry => (
-            <div key={entry.rank} className={`shrink-0 w-52 rounded-2xl p-5 text-center border ${entry.isMe ? "bg-orange-50 border-orange-200" : "bg-white border-orange-50"} shadow-sm`}>
+        <div className="grid grid-cols-3 gap-4">
+          {getVisible().map(entry => (
+            <div key={`${entry.rank}-${heroIdx}`}
+              className={`rounded-2xl p-5 text-center border transition-all ${entry.isMe ? "bg-orange-50 border-orange-200" : "bg-white border-orange-50"} shadow-sm`}
+              style={{ animation: "fadeIn 0.4s ease" }}>
               <div className="text-3xl mb-2">{entry.rank === 1 ? "🥇" : entry.rank === 2 ? "🥈" : entry.rank === 3 ? "🥉" : entry.isMe ? "👤" : `#${entry.rank}`}</div>
               <div className="flex justify-center mb-2"><Avatar initials={entry.avatar} size="lg" /></div>
               <p className={`font-bold text-sm ${entry.isMe ? "text-orange-700" : "text-gray-900"}`}>{entry.name}{entry.isMe && " (You)"}</p>
@@ -559,26 +578,6 @@ function ScoreboardPage({ entries }: { entries: LeaderboardEntry[] }) {
           </p>
         </div>
       )}
-
-      <div className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-bold text-gray-900">All Contributors</h3>
-          <div className="flex gap-1.5">
-            <button onClick={() => scrollContrib(-1)} className="p-1.5 rounded-lg hover:bg-orange-50 text-gray-500 transition-colors"><ChevronLeft size={18} /></button>
-            <button onClick={() => scrollContrib(1)} className="p-1.5 rounded-lg hover:bg-orange-50 text-gray-500 transition-colors"><ChevronRight size={18} /></button>
-          </div>
-        </div>
-        <div ref={contribRef} className="flex gap-3 overflow-x-auto pb-2 scroll-smooth" style={{ scrollbarWidth: "none" }}>
-          {entries.map(entry => (
-            <div key={entry.rank} className={`shrink-0 w-36 rounded-xl p-3 text-center border ${entry.isMe ? "bg-orange-50 border-orange-200" : "bg-gray-50 border-gray-100"}`}>
-              <div className="flex justify-center mb-1.5"><Avatar initials={entry.avatar} size="sm" /></div>
-              <p className={`text-xs font-bold truncate ${entry.isMe ? "text-orange-700" : "text-gray-800"}`}>{entry.name}</p>
-              <p className="text-xs text-orange-600 font-semibold">{entry.points.toLocaleString()} pts</p>
-              <p className="text-xs text-gray-400">#{entry.rank}</p>
-            </div>
-          ))}
-        </div>
-      </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-orange-50 overflow-hidden">
         <div className="px-5 py-4 border-b border-orange-50 flex items-center gap-2">
@@ -666,7 +665,7 @@ function ProfilePage({ profile, onSave }: { profile: VolunteerProfile; onSave: (
   return (
     <div className="max-w-2xl space-y-5">
       <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-orange-50">
-        <div className="h-24 relative" style={{ background: "linear-gradient(135deg, #FF7A00, #FFB347)" }}>
+        <div className="h-14 relative" style={{ background: "linear-gradient(135deg, #FF7A00, #FFB347)" }}>
           <div className="absolute inset-0 opacity-10">
             <svg width="100%" height="100%"><pattern id="pp" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1.5" fill="white" /></pattern><rect width="100%" height="100%" fill="url(#pp)" /></svg>
           </div>
