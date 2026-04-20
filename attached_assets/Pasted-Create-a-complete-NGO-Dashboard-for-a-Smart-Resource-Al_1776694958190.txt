@@ -1,0 +1,216 @@
+Create a complete NGO Dashboard for a Smart Resource Allocation System.
+
+IMPORTANT ROLE BEHAVIOR:
+
+* When a user signs up or logs in as an NGO, automatically redirect them to the NGO Dashboard.
+* Ensure role-based routing so NGO users always land on this dashboard after authentication.
+
+---
+
+## CORE FUNCTIONAL FEATURES
+
+1. NGO PROFILE SYSTEM:
+
+* Automatically create NGO profile using signup/signin details (name, email, phone).
+* Display profile section with:
+
+  * NGO Name
+  * Admin Name
+  * Email & Phone
+  * Address
+  * NGO Description
+  * Registration ID
+* Add “Edit Profile” functionality:
+
+  * All fields editable
+  * Changes must instantly update UI and database everywhere.
+
+---
+
+2. REGISTER NEW NGO FEATURE:
+
+* Add “Register Your NGO” button.
+* Form should include:
+
+  * NGO Name
+  * Registration Number
+  * Address
+  * NGO Type (Education, Health, Food, etc.)
+  * Document/Image upload
+* After submission:
+
+  * Status = Pending Approval
+
+---
+
+3. DASHBOARD OVERVIEW:
+
+* Show key stats:
+
+  * Active Tasks
+  * Completed Tasks
+  * Pending Tasks
+  * Volunteers
+  * Resources
+* Include:
+
+  * Bar Chart → Task Progress
+  * Pie Chart → Resource Distribution
+* Charts must support hover tooltips with:
+
+  * Label
+  * Value
+  * Percentage
+
+---
+
+4. VOLUNTEER MANAGEMENT:
+
+* View all volunteers
+* Add new volunteers
+* Edit volunteer details
+* Store:
+
+  * Name
+  * Contact
+  * Skills
+  * Availability
+* Assign volunteers to tasks
+
+---
+
+5. TASK MANAGEMENT:
+
+* Create tasks with:
+
+  * Title
+  * Description
+  * Deadline
+  * Priority
+* Assign volunteers manually or automatically
+* Task status flow:
+
+  * Assigned → In Progress → Completed
+* Tasks must be editable and updates should reflect instantly
+
+---
+
+6. PROOF VERIFICATION SYSTEM:
+
+* Volunteers can upload images/files as proof
+* NGO can:
+
+  * View proof
+  * Approve / Reject
+* Clicking image should open full preview (modal/lightbox)
+
+---
+
+7. RESOURCE MANAGEMENT:
+
+* Add, edit, delete resources
+* Track:
+
+  * Quantity
+  * Allocation status
+* Reflect updates dynamically
+
+---
+
+8. FULL EDITABLE SYSTEM:
+
+* Profile, NGO details, volunteers, tasks, and resources must all be editable
+* All updates must:
+
+  * Reflect instantly in UI
+  * Sync with backend/database
+
+---
+
+## UI/UX ENHANCEMENT INSTRUCTIONS (VERY IMPORTANT)
+
+I am working on the frontend of my project.
+
+DO NOT change:
+
+* Existing UI design
+* Layout structure
+* Colors
+* Components
+* Data logic
+
+ONLY enhance visual experience with animations and interactions.
+
+---
+
+1. SCROLL-BASED ANIMATIONS:
+
+* When elements come into view:
+
+  * Apply smooth animations (fade-in, slide-up, drop-down)
+* Example:
+
+  * Pie chart should drop from above when visible
+  * Cards should fade/slide into view
+
+---
+
+2. HOVER EFFECTS:
+
+* Add subtle hover interactions:
+
+  * Cards → slight scale + shadow
+  * Buttons → smooth highlight or elevation
+  * Sections → soft transitions
+
+---
+
+3. TRANSITIONS:
+
+* Use smooth transitions (0.3s to 0.5s)
+* Apply consistently across UI
+
+---
+
+4. GRAPH INTERACTIVITY:
+
+* On hover:
+
+  * Show clean tooltips (label, value, percentage)
+  * Highlight hovered section (scale or brightness)
+* Ensure smooth tooltip animation
+
+---
+
+5. CHART LIBRARY:
+
+* Use Recharts or Chart.js
+* Enable built-in tooltip + animation features
+
+---
+
+6. ANIMATION LIBRARY:
+
+* Use:
+
+  * Framer Motion (preferred for React)
+    OR
+  * AOS (Animate On Scroll)
+    OR
+  * Pure CSS animations
+
+---
+
+7. PERFORMANCE:
+
+* Animations must be smooth and not laggy
+* Avoid over-animation
+* Keep UI clean and professional
+
+---
+
+FINAL REQUIREMENT:
+
+* Do not redesign anything
+* Only enhance interactions, animations, and dynamic behavior
+* Maintain clean, modern, responsive UI

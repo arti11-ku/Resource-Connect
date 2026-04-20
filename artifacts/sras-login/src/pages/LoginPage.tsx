@@ -97,6 +97,13 @@ export default function LoginPage() {
       }, 1200);
       return;
     }
+    if (selectedRole === "ngo") {
+      setIsLoading(true);
+      setTimeout(() => {
+        window.location.href = "/ngo-dashboard";
+      }, 1200);
+      return;
+    }
     if (!validate()) return;
     setIsLoading(true);
     setTimeout(() => setIsLoading(false), 1200);
