@@ -1476,16 +1476,21 @@ export default function NgoDashboard() {
                   )}
                 </AnimatePresence>
               </div>
-              <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => setActivePage("profile")}
+                aria-label="Open profile"
+                className="flex items-center gap-2.5 p-1 -m-1 rounded-xl hover:bg-orange-50 transition-colors"
+              >
                 <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white"
                   style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }}>
                   {initials}
                 </div>
-                <div className="hidden sm:block">
+                <div className="hidden sm:block text-left">
                   <p className="text-xs font-bold text-gray-800 leading-tight">{profile.adminName}</p>
                   <p className="text-[10px] font-semibold" style={{ color: ORANGE }}>NGO Admin</p>
                 </div>
-              </div>
+              </button>
             </div>
           </header>
         </SlideInHeader>
