@@ -33,22 +33,60 @@ const carouselImages = [
 ];
 
 function ImageMarquee() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    const track = trackRef.current;
+    if (!container || !track) return;
+
+    let raf = 0;
+    const update = () => {
+      const rect = container.getBoundingClientRect();
+      const center = rect.left + rect.width / 2;
+      const half = rect.width / 2;
+      const items = track.querySelectorAll<HTMLElement>("[data-marquee-item]");
+      items.forEach((el) => {
+        const r = el.getBoundingClientRect();
+        const itemCenter = r.left + r.width / 2;
+        const t = Math.min(Math.abs(itemCenter - center) / half, 1);
+        const scale = 1.12 - 0.27 * t;
+        const opacity = 1 - 0.45 * t;
+        el.style.transform = `scale(${scale.toFixed(3)})`;
+        el.style.opacity = opacity.toFixed(3);
+      });
+      raf = requestAnimationFrame(update);
+    };
+    raf = requestAnimationFrame(update);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
   const items = [...carouselImages, ...carouselImages];
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-white shadow-sm border border-orange-50 py-5">
-      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-white to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-white to-transparent" />
-      <div className="flex w-max gap-4 animate-marquee-x px-4">
+    <div
+      ref={containerRef}
+      className="relative overflow-hidden rounded-2xl bg-white shadow-sm border border-orange-50 py-7"
+    >
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-20 bg-gradient-to-r from-white to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-20 bg-gradient-to-l from-white to-transparent" />
+      <div
+        ref={trackRef}
+        className="flex w-max gap-5 animate-marquee-x px-4 items-center"
+      >
         {items.map((img, i) => (
           <div
             key={i}
-            className="shrink-0 overflow-hidden rounded-xl shadow-md ring-1 ring-orange-50"
+            data-marquee-item
+            className="shrink-0 overflow-hidden rounded-xl shadow-md ring-1 ring-orange-50 will-change-transform origin-center"
+            style={{ transition: "opacity 0.3s ease" }}
           >
             <img
               src={img.src}
               alt={img.alt}
               loading="lazy"
-              className="h-36 w-56 sm:h-44 sm:w-72 object-cover transition-transform duration-500 ease-out hover:scale-110"
+              draggable={false}
+              className="h-40 w-64 sm:h-48 sm:w-80 object-cover block"
             />
           </div>
         ))}
@@ -1339,7 +1377,7 @@ export default function VolunteerDashboard() {
   );
 
   return (
-    <div className="min-h-screen flex bg-orange-50/30">
+    <div className="h-screen overflow-hidden flex bg-orange-50/30">
       {sidebarOpen && <div className="fixed inset-0 bg-black/30 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
       <aside className={`fixed top-0 left-0 h-full w-60 bg-white shadow-lg border-r border-orange-100 z-30 transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 lg:static lg:shadow-none`}>

@@ -198,7 +198,7 @@
 }
 
 .animate-marquee-x {
-  animation: marquee-x 45s linear infinite;
+  animation: marquee-x 25s linear infinite;
   will-change: transform;
 }
 
