@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock, ChevronDown } from "lucide-react";
 import saharaLogo from "@assets/ChatGPT_Image_Apr_19,_2026,_08_38_53_PM_1776611355262.png";
+import authBgImage from "@assets/file_00000000a8e071faa50dcec2b5e4fd8d_1776788580031.png";
 import { Marquee, PulseRing } from "../lib/AnimatedComponents";
 import SocialAuthButtons from "../components/SocialAuthButtons";
 import TermsModal from "../components/TermsModal";
@@ -191,6 +192,18 @@ export default function LoginPage() {
       className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden"
       style={{ background: "linear-gradient(145deg, #FFF8F2 0%, #FFF0E0 50%, #FFE8CC 100%)" }}
     >
+      {/* Page background image (Login only) */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: `url(${authBgImage})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      />
+      {/* Dark overlay for readability */}
+      <div className="absolute inset-0 pointer-events-none" style={{ backgroundColor: "rgba(0,0,0,0.45)" }} />
       <div className="absolute inset-0 chakra-pattern" />
 
       <motion.div
