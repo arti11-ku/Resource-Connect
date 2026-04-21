@@ -1,0 +1,94 @@
+I am working on the frontend of my Smart Resource Allocation System.
+
+IMPORTANT:
+
+* Do NOT change existing UI design, layout, colors, or structure.
+* Only enhance functionality by adding authentication features.
+* Keep the current sign-in and sign-up forms exactly as they are.
+
+Now implement the following:
+
+---
+
+1. SOCIAL LOGIN OPTIONS
+
+* Add two buttons on the Sign-In and Sign-Up page:
+  • "Continue with Google"
+  • "Continue with Facebook"
+* Place them below the existing login form (without disturbing layout)
+
+---
+
+2. GOOGLE AUTHENTICATION
+
+* Integrate Google Sign-In using OAuth
+* Use Google authentication service via Firebase Authentication
+* When user signs in:
+
+  * Fetch:
+    • Full Name
+    • Email
+    • Profile Picture
+  * Store this data in the database / state
+
+---
+
+3. FACEBOOK AUTHENTICATION
+
+* Integrate Facebook Login using OAuth
+* Fetch:
+  • Name
+  • Email
+  • Profile Picture
+* Store user data same as Google login
+
+---
+
+4. AUTO-FILL DASHBOARD DATA
+
+* After login:
+
+  * Redirect user to respective dashboard (NGO / Volunteer / Reporter / Donor)
+  * Automatically display:
+    • Name
+    • Email
+    • Profile Image
+    • Any available details from Google/Facebook
+* If additional data is required (like phone, role):
+
+  * Ask user once and store it
+
+---
+
+5. SESSION MANAGEMENT
+
+* Keep user logged in using persistent authentication
+* On reload:
+
+  * User should remain logged in
+  * Dashboard should load directly
+
+---
+
+6. FALLBACK SUPPORT
+
+* Keep manual login (email/password) working as it is
+* Social login should act as an additional option
+
+---
+
+TECH REQUIREMENTS:
+
+* Use Firebase Authentication for both Google and Facebook providers
+* Write clean modular code
+* Do NOT break existing authentication flow
+* Add comments explaining integration
+
+---
+
+GOAL:
+Enable users to quickly sign in using Google or Facebook and automatically use their profile data in the dashboard.
+
+---
+
+Do NOT redesign UI. Only enhance functionality.
