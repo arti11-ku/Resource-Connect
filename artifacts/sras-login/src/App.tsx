@@ -9,6 +9,7 @@ import ReporterDashboard from "@/pages/ReporterDashboard";
 import NgoDashboard from "@/pages/NgoDashboard";
 import DonorDashboard from "@/pages/DonorDashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
+import Footer from "@/components/Footer";
 
 const queryClient = new QueryClient();
 
@@ -32,7 +33,12 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
+          <div className="min-h-screen flex flex-col">
+            <div className="flex-1 flex flex-col">
+              <Router />
+            </div>
+            <Footer />
+          </div>
         </WouterRouter>
         <Toaster />
       </TooltipProvider>
