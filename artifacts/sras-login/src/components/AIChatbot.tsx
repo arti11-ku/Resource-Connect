@@ -82,12 +82,21 @@ export default function AIChatbot({ context }: Props) {
     <>
       <motion.button
         onClick={() => setOpen(o => !o)}
-        whileHover={{ scale: 1.08, rotate: open ? 0 : 6 }}
-        whileTap={{ scale: 0.92 }}
-        animate={{ boxShadow: open ? "0 8px 24px rgba(255,122,0,0.35)" : "0 6px 18px rgba(255,122,0,0.45)" }}
+        whileHover={{ scale: 1.12, rotateY: 18, rotateX: -10, z: 30 }}
+        whileTap={{ scale: 0.92, rotateX: 8 }}
+        animate={
+          open
+            ? { y: 0, rotateX: 0, rotateY: 0, boxShadow: "0 10px 26px rgba(255,122,0,0.4), inset 0 -6px 14px rgba(140,50,0,0.25), inset 0 4px 10px rgba(255,255,255,0.4)" }
+            : { y: [0, -6, 0], rotateY: [0, 8, 0, -8, 0], boxShadow: "0 14px 30px rgba(255,122,0,0.5), inset 0 -6px 14px rgba(140,50,0,0.25), inset 0 4px 10px rgba(255,255,255,0.45)" }
+        }
+        transition={{ y: { duration: 3, repeat: Infinity, ease: "easeInOut" }, rotateY: { duration: 6, repeat: Infinity, ease: "easeInOut" } }}
         aria-label="Open SAHARA AI chat"
         className="fixed bottom-5 right-5 z-50 w-14 h-14 rounded-full text-white flex items-center justify-center"
-        style={{ background: "linear-gradient(135deg, #FF7A00, #FF9A40)" }}
+        style={{
+          background: "linear-gradient(135deg, #FF7A00, #FF9A40)",
+          transformStyle: "preserve-3d",
+          perspective: 600,
+        }}
       >
         <AnimatePresence mode="wait" initial={false}>
           <motion.span
@@ -111,26 +120,35 @@ export default function AIChatbot({ context }: Props) {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: 24, scale: 0.94 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 24, scale: 0.94 }}
-            transition={{ type: "spring", stiffness: 280, damping: 26 }}
+            initial={{ opacity: 0, y: 40, scale: 0.85, rotateX: -55, rotateY: 25, transformPerspective: 1200 }}
+            animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0, rotateY: 0, transformPerspective: 1200 }}
+            exit={{ opacity: 0, y: 30, scale: 0.9, rotateX: -45, rotateY: 20, transformPerspective: 1200 }}
+            transition={{ type: "spring", stiffness: 220, damping: 22 }}
+            whileHover={{ rotateX: 1.5, rotateY: -2 }}
             className="fixed bottom-24 right-5 z-50 w-[22rem] max-w-[calc(100vw-2rem)] h-[30rem] rounded-2xl flex flex-col overflow-hidden"
             style={{
               background: "rgba(255,255,255,0.92)",
               backdropFilter: "blur(14px)",
               WebkitBackdropFilter: "blur(14px)",
               border: "1px solid rgba(255,154,64,0.25)",
-              boxShadow: "0 20px 50px rgba(255,122,0,0.18), 0 4px 12px rgba(0,0,0,0.06)",
+              boxShadow:
+                "0 30px 60px -12px rgba(255,122,0,0.35), 0 18px 36px rgba(255,122,0,0.18), 0 4px 12px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.6)",
+              transformStyle: "preserve-3d",
+              transformOrigin: "bottom right",
             }}
           >
             <div
               className="px-4 py-3 text-white flex items-center gap-2"
               style={{ background: "linear-gradient(135deg, #FF7A00, #FF9A40)" }}
             >
-              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+              <motion.div
+                className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center"
+                animate={{ rotateY: [0, 360], boxShadow: ["inset 0 -3px 6px rgba(0,0,0,0.2), 0 2px 6px rgba(255,255,255,0.3)", "inset 0 3px 6px rgba(0,0,0,0.2), 0 2px 6px rgba(255,255,255,0.3)", "inset 0 -3px 6px rgba(0,0,0,0.2), 0 2px 6px rgba(255,255,255,0.3)"] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+                style={{ transformStyle: "preserve-3d" }}
+              >
                 <Sparkles size={15} />
-              </div>
+              </motion.div>
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-sm leading-tight">SAHARA AI Assistant</p>
                 <p className="text-xs text-orange-50">Smart help for {context.role}s · Gemini</p>
