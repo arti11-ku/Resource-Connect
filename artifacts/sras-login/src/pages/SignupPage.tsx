@@ -5,6 +5,8 @@ import {
   ChevronDown, Calendar, Tag, X
 } from "lucide-react";
 import saharaLogo from "@assets/ChatGPT_Image_Apr_19,_2026,_08_38_53_PM_1776611355262.png";
+import SocialAuthButtons from "../components/SocialAuthButtons";
+import type { Role as AuthRole } from "../lib/socialAuth";
 
 type Role = "reporter" | "ngo" | "admin" | "volunteer" | "donor";
 type Gender = "male" | "female" | "other";
@@ -608,6 +610,18 @@ export default function SignupPage() {
                 </button>
               </div>
             </form>
+
+            <div className="mt-6">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="flex-1 h-px bg-orange-100" />
+                <span className="text-xs text-gray-400 font-medium">or sign up with</span>
+                <div className="flex-1 h-px bg-orange-100" />
+              </div>
+              <SocialAuthButtons
+                getRole={() => form.role as AuthRole | ""}
+                onMissingRole={() => setErrors(er => ({ ...er, role: "Please select your role first" }))}
+              />
+            </div>
 
             <p className="mt-6 text-center text-sm text-gray-500">
               Already have an account?{" "}
