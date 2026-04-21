@@ -11,9 +11,51 @@ import {
   Heart, Leaf, BookOpen, Stethoscope, Upload, Pencil, Save, Plus
 } from "lucide-react";
 import saharaLogo from "@assets/ChatGPT_Image_Apr_19,_2026,_08_38_53_PM_1776611355262.png";
+import gallery1 from "@assets/WhatsApp_Image_2026-04-21_at_11.06.47_PM_1776793392967.jpeg";
+import gallery2 from "@assets/WhatsApp_Image_2026-04-21_at_11.06.48_PM_1776793392968.jpeg";
+import gallery3 from "@assets/WhatsApp_Image_2026-04-21_at_11.06.49_PM_1776793392969.jpeg";
+import gallery4 from "@assets/WhatsApp_Image_2026-04-21_at_11.06.50_PM_1776793392969.jpeg";
+import gallery5 from "@assets/WhatsApp_Image_2026-04-21_at_11.06.51_PM_1776793392969.jpeg";
+import gallery6 from "@assets/WhatsApp_Image_2026-04-21_at_11.06.52_PM_1776793392970.jpeg";
+import gallery7 from "@assets/WhatsApp_Image_2026-04-21_at_11.06.53_PM_1776793392970.jpeg";
 import AIChatbot from "../components/AIChatbot";
 import EmptyState from "../components/EmptyState";
 import { recommendTasks, verifyProof, type AIPriority } from "../lib/ai";
+
+const carouselImages = [
+  { src: gallery1, alt: "Education for All — Sahara volunteers teaching children" },
+  { src: gallery2, alt: "Food Distribution Drive" },
+  { src: gallery3, alt: "Beach cleanup volunteers" },
+  { src: gallery4, alt: "Tree Plantation Drive" },
+  { src: gallery5, alt: "Donation drive volunteers" },
+  { src: gallery6, alt: "Tree planting in progress" },
+  { src: gallery7, alt: "NGO volunteer with community" },
+];
+
+function ImageMarquee() {
+  const items = [...carouselImages, ...carouselImages];
+  return (
+    <div className="relative overflow-hidden rounded-2xl bg-white shadow-sm border border-orange-50 py-5">
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-white to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-white to-transparent" />
+      <div className="flex w-max gap-4 animate-marquee-x px-4">
+        {items.map((img, i) => (
+          <div
+            key={i}
+            className="shrink-0 overflow-hidden rounded-xl shadow-md ring-1 ring-orange-50"
+          >
+            <img
+              src={img.src}
+              alt={img.alt}
+              loading="lazy"
+              className="h-36 w-56 sm:h-44 sm:w-72 object-cover transition-transform duration-500 ease-out hover:scale-110"
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 type Page = "dashboard" | "available-tasks" | "my-tasks" | "scoreboard" | "profile" | "settings";
 type TaskStatus = "pending" | "in-progress" | "completed";
@@ -540,6 +582,10 @@ function DashboardPage({ onNavigate, myTasksList, totalPoints, tasksCompleted, p
           </HoverCard>
         </FadeUp>
       </div>
+
+      <FadeUp delay={0.18}>
+        <ImageMarquee />
+      </FadeUp>
     </MountFade>
   );
 }

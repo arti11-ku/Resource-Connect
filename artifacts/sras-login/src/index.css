@@ -192,6 +192,20 @@
   animation: shimmer 3s linear infinite;
 }
 
+@keyframes marquee-x {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+.animate-marquee-x {
+  animation: marquee-x 45s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-x:hover {
+  animation-play-state: paused;
+}
+
 .input-focus-orange:focus {
   outline: none;
   box-shadow: 0 0 0 3px rgba(255, 122, 0, 0.15);
