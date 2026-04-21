@@ -237,9 +237,6 @@ export default function SignupPage() {
     return Object.keys(e).length === 0;
   };
 
-  const API_BASE =
-    (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:8000";
-
   const routeForRole = (role: Role): string => {
     switch (role) {
       case "reporter":
@@ -261,40 +258,22 @@ export default function SignupPage() {
 
     setIsLoading(true);
     try {
-      const location = [form.city, form.state].filter(Boolean).join(", ");
-      const res = await fetch(`${API_BASE}/auth/signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: form.fullName,
-          email: form.email,
-          phone: form.phone,
-          role: form.role,
-          location,
-          password: form.password,
-          skills: form.skills,
-        }),
-      });
-
-      if (!res.ok) {
-        let detail = "Signup failed. Please try again.";
-        try {
-          const err = await res.json();
-          if (typeof err?.detail === "string") detail = err.detail;
-        } catch {}
-        setErrors({ email: detail });
-        setIsLoading(false);
-        return;
-      }
-
-      const data = await res.json();
-      if (data?.access_token) {
-        localStorage.setItem("token", data.access_token);
-      }
-      const role: Role = (data?.user?.role as Role) ?? (form.role as Role);
+      // Local-only signup: persist profile and route by role.
+      const role = form.role as Role;
+      const user = {
+        name: form.fullName,
+        email: form.email,
+        phone: form.phone,
+        role,
+        city: form.city,
+        state: form.state,
+        skills: form.skills,
+      };
+      localStorage.setItem("sahara_user", JSON.stringify(user));
+      localStorage.setItem("token", `local-${Date.now()}`);
       window.location.href = routeForRole(role);
-    } catch (err) {
-      setErrors({ email: "Could not reach server. Please try again." });
+    } catch {
+      setErrors({ email: "Could not sign up. Please try again." });
       setIsLoading(false);
     }
   };

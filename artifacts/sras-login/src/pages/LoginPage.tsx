@@ -112,9 +112,6 @@ export default function LoginPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const API_BASE =
-    (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:8000";
-
   const routeForRole = (role: Role): string => {
     switch (role) {
       case "reporter":
@@ -136,31 +133,34 @@ export default function LoginPage() {
 
     setIsLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: form.email, password: form.password }),
-      });
+      // Local-only auth: persist a lightweight user profile and route by role.
+      const role = form.role as Role;
+      const namePart = form.email.split("@")[0].replace(/[._-]+/g, " ");
+      const displayName = namePart
+        .split(" ")
+        .filter(Boolean)
+        .map(w => w[0].toUpperCase() + w.slice(1))
+        .join(" ") || "User";
 
-      if (!res.ok) {
-        let detail = "Invalid email or password";
+      const existing = (() => {
         try {
-          const err = await res.json();
-          if (typeof err?.detail === "string") detail = err.detail;
-        } catch {}
-        setErrors({ password: detail });
-        setIsLoading(false);
-        return;
-      }
+          const saved = localStorage.getItem("sahara_user");
+          return saved ? JSON.parse(saved) : null;
+        } catch { return null; }
+      })();
 
-      const data = await res.json();
-      if (data?.access_token) {
-        localStorage.setItem("token", data.access_token);
-      }
-      const role: Role = (data?.user?.role as Role) ?? (form.role as Role);
+      const user = {
+        ...(existing && existing.email === form.email ? existing : {}),
+        name: existing?.name || displayName,
+        email: form.email,
+        role,
+      };
+      localStorage.setItem("sahara_user", JSON.stringify(user));
+      localStorage.setItem("token", `local-${Date.now()}`);
+
       window.location.href = routeForRole(role);
-    } catch (err) {
-      setErrors({ password: "Could not reach server. Please try again." });
+    } catch {
+      setErrors({ password: "Could not sign in. Please try again." });
       setIsLoading(false);
     }
   };
