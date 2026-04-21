@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import saharaLogo from "@assets/ChatGPT_Image_Apr_19,_2026,_08_38_53_PM_1776611355262.png";
 import AIChatbot from "../components/AIChatbot";
+import EmptyState from "../components/EmptyState";
 import { recommendTasks, verifyProof, type AIPriority } from "../lib/ai";
 
 type Page = "dashboard" | "available-tasks" | "my-tasks" | "scoreboard" | "profile" | "settings";
@@ -412,7 +413,14 @@ function DashboardPage({ onNavigate, myTasksList, totalPoints, tasksCompleted, p
             const map = new Map(availableTasks.map(t => [t.id, t]));
             const items = recs.map(r => ({ rec: r, task: map.get(r.taskId) })).filter(x => x.task);
             if (items.length === 0) {
-              return <p className="text-xs text-gray-400">No recommendations right now — check back soon.</p>;
+              return (
+                <EmptyState
+                  variant="recommend"
+                  compact
+                  title="No recommendations right now"
+                  description="Check back soon — we'll match you with tasks that fit your skills and area."
+                />
+              );
             }
             return (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -567,9 +575,12 @@ function AvailableTasksPage({ tasks, acceptedIds, onAccept }: { tasks: Available
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
         {filtered.map(task => <TaskCard key={task.id} task={task} accepted={acceptedIds.has(task.id)} onAccept={onAccept} />)}
         {filtered.length === 0 && (
-          <div className="col-span-3 bg-white rounded-2xl p-14 text-center shadow-sm border border-orange-50">
-            <ClipboardList size={40} className="text-orange-200 mx-auto mb-3" />
-            <p className="text-gray-500 font-medium">No tasks found</p>
+          <div className="col-span-3 bg-white rounded-2xl shadow-sm border border-orange-50">
+            <EmptyState
+              variant="tasks"
+              title="No tasks found"
+              description="Try clearing your filters or check back soon for new opportunities."
+            />
           </div>
         )}
       </div>
@@ -789,9 +800,12 @@ function MyTasksPage({ myTasksList, onUpdateStatus, onUploadProof, onAddTask }: 
           );
         })}
         {filtered.length === 0 && (
-          <div className="bg-white rounded-2xl p-14 text-center shadow-sm border border-orange-50">
-            <ClipboardList size={40} className="text-orange-200 mx-auto mb-3" />
-            <p className="text-gray-500 font-medium">No tasks in this category</p>
+          <div className="bg-white rounded-2xl shadow-sm border border-orange-50">
+            <EmptyState
+              variant="tasks"
+              title="No tasks in this category"
+              description="Pick another tab or grab a new task from the available list."
+            />
           </div>
         )}
       </StaggerList>

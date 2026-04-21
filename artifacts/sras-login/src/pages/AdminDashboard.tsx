@@ -12,6 +12,7 @@ import {
   Plus, FileText, Flag, Sparkles, Zap
 } from "lucide-react";
 import AIChatbot from "../components/AIChatbot";
+import EmptyState from "../components/EmptyState";
 import { allocateTasks, verifyProof, type AIAllocation, type AIPriority } from "../lib/ai";
 import {
   BarChart, Bar, PieChart, Pie, Cell, LineChart, Line,
@@ -728,7 +729,12 @@ function TaskMonitorPage({ tasks, users }: { tasks: TaskEntry[]; users: UserEntr
               <button onClick={() => setAiAllocations(null)} className="text-gray-400 hover:text-gray-600 p-1"><X size={16} /></button>
             </div>
             {aiAllocations.length === 0 ? (
-              <p className="text-xs text-gray-400">No delayed or unassigned tasks — system is healthy!</p>
+              <EmptyState
+                variant="healthy"
+                compact
+                title="System is healthy"
+                description="No delayed or unassigned tasks — every active task has a volunteer."
+              />
             ) : (
               <ul className="space-y-2">
                 {aiAllocations.map(a => (

@@ -1,0 +1,152 @@
+I am working on the frontend of my React project.
+
+IMPORTANT:
+
+* Do NOT change the existing layout, structure, or core design
+* Do NOT remove or replace current components
+* Only enhance the UI visually with images, animations, and subtle color improvements
+* Maintain the existing orange theme, but refine it (do NOT remove it)
+
+---
+
+## 🎨 FEATURE 1: ADD RELEVANT IMAGES (DASHBOARD + SECTIONS)
+
+Enhance visual appeal by adding meaningful images/icons across the app:
+
+Requirements:
+
+* Add images in:
+
+  * Dashboard cards
+  * Report Issue section
+  * NGO / Resource sections
+  * Empty states (no data screens)
+* Use:
+
+  * Illustrations (modern flat or minimal style)
+  * Icons where appropriate
+* Ensure images are:
+
+  * Lightweight
+  * Responsive
+  * Properly aligned with content
+
+Examples:
+
+* Resource allocation → logistics/people helping illustrations
+* Issue reporting → alert/report icons or visuals
+* NGO dashboard → community/help-related visuals
+
+---
+
+## ✨ FEATURE 2: GLOBAL ANIMATIONS & INTERACTIONS
+
+Make the entire UI feel smooth and modern:
+
+Add:
+
+* Card hover animations:
+
+  * Slight lift (scale + shadow)
+* Button interactions:
+
+  * Smooth hover + click feedback
+* Page load animations:
+
+  * Fade-in / slide-up for sections
+* Scroll animations:
+
+  * Elements appear smoothly on scroll
+* Dashboard graphs:
+
+  * Smooth transitions + hover tooltips
+* Chatbot (if present):
+
+  * Smooth open/close animation
+
+Use:
+
+* CSS transitions OR lightweight animation libraries (like Framer Motion if needed)
+
+---
+
+## 🎨 FEATURE 3: COLOR REFINEMENT (KEEP ORANGE THEME)
+
+Current issue:
+
+* Entire UI is overly orange
+
+Improve it WITHOUT redesigning:
+
+Do:
+
+* Keep orange as PRIMARY brand color
+* Add supporting colors:
+
+  * Light neutrals (white, light gray, soft backgrounds)
+  * Subtle accent colors (blue/green for charts, highlights)
+* Reduce orange intensity in:
+
+  * Backgrounds
+  * Large sections
+* Use orange mainly for:
+
+  * Buttons
+  * Highlights
+  * Active states
+
+Goal:
+
+* Balanced, clean, professional UI
+* Avoid over-saturation
+
+---
+
+## 🧱 FEATURE 4: VISUAL DEPTH & MODERN FEEL
+
+Add:
+
+* Soft shadows to cards
+* Rounded corners (consistent across UI)
+* Spacing improvements between sections
+* Section separation using subtle backgrounds
+
+Optional:
+
+* Light glassmorphism effect on cards/modals
+
+---
+
+## 📱 RESPONSIVENESS
+
+* Ensure all images and animations work on:
+
+  * Mobile
+  * Tablet
+  * Desktop
+
+---
+
+## ⚙️ TECH REQUIREMENTS
+
+* Keep code modular
+* Do not break existing functionality
+* Avoid heavy dependencies
+* Optimize performance (no large images)
+
+---
+
+## 🎯 FINAL GOAL
+
+The app should feel:
+
+* Modern
+* Smooth
+* Visually engaging
+* Professional (like a real SaaS product)
+
+Do NOT redesign — only enhance with:
+
+* images
+* animations
+* better color balance

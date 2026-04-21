@@ -16,6 +16,7 @@ import {
 import saharaLogo from "@assets/ChatGPT_Image_Apr_19,_2026,_08_38_53_PM_1776611355262.png";
 import LocationPicker, { type LocationValue } from "../components/LocationPicker";
 import AIChatbot from "../components/AIChatbot";
+import EmptyState from "../components/EmptyState";
 
 function Bar3DChart({ data, labelA = "Completed", labelB = "Delayed" }: {
   data: { name: string; completed: number; delayed: number }[];
@@ -504,7 +505,16 @@ function TasksPage() {
                 );
               })}
               {filtered.length === 0 && (
-                <tr><td colSpan={6} className="text-center py-12 text-gray-400">No tasks match your filters.</td></tr>
+                <tr>
+                  <td colSpan={6} className="py-6">
+                    <EmptyState
+                      variant="tasks"
+                      compact
+                      title="No tasks match your filters"
+                      description="Try a different status or category to see more results."
+                    />
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
@@ -637,7 +647,13 @@ function ProofsPage() {
           </StaggerItem>
         ))}
         {filtered.length === 0 && (
-          <div className="col-span-2 text-center py-12 text-gray-400 bg-white rounded-2xl border border-orange-50">No proofs in this category.</div>
+          <div className="col-span-2 bg-white rounded-2xl border border-orange-50">
+            <EmptyState
+              variant="proofs"
+              title="No proofs in this category"
+              description="Once volunteers submit proof of completed work, it'll show up here for your review."
+            />
+          </div>
         )}
       </StaggerList>
 
@@ -844,7 +860,13 @@ function IssuesPage() {
           </StaggerItem>
         ))}
         {issues.length === 0 && (
-          <div className="text-center py-12 text-gray-400 bg-white rounded-2xl border border-orange-50">No issues reported.</div>
+          <div className="bg-white rounded-2xl border border-orange-50">
+            <EmptyState
+              variant="issues"
+              title="No issues reported yet"
+              description="Use the Flag Issue form to raise the first concern from the field."
+            />
+          </div>
         )}
       </StaggerList>
     </MountFade>
@@ -1111,7 +1133,12 @@ function CommunicationPage() {
         </div>
         <div className="p-4 space-y-3 max-h-72 overflow-y-auto">
           {taskComments.length === 0 ? (
-            <p className="text-center text-sm text-gray-400 py-6">No messages yet for this task.</p>
+            <EmptyState
+              variant="messages"
+              compact
+              title="No messages yet"
+              description="Start the conversation — your team will see it instantly."
+            />
           ) : taskComments.map(c => (
             <div key={c.id} className={`flex gap-2.5 ${c.isMe ? "flex-row-reverse" : ""}`}>
               <Avatar name={c.author} size="sm" />
