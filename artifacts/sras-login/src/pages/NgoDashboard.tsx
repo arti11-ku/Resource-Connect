@@ -9,13 +9,15 @@ import {
   LayoutDashboard, Building2, ClipboardList, Users, ShieldCheck,
   Package, LogOut, Bell, Menu, X, Plus, Pencil, Save, Trash2,
   CheckCircle2, XCircle, Clock, Eye, Upload, Search, ChevronDown,
-  FileText, User, AlertCircle
+  FileText, User, AlertCircle, Sparkles, Zap
 } from "lucide-react";
 import {
   BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, Tooltip, ResponsiveContainer, Legend
 } from "recharts";
 import saharaLogo from "@assets/ChatGPT_Image_Apr_19,_2026,_08_38_53_PM_1776611355262.png";
+import AIChatbot from "../components/AIChatbot";
+import { allocateTasks, predictPriority, verifyProof, type AIAllocation } from "../lib/ai";
 
 const ORANGE = "#FF7A00";
 const ORANGE_LIGHT = "#FF9A40";
@@ -780,8 +782,44 @@ function TasksPage({ tasks, setTasks, volunteers }: {
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [aiAllocations, setAiAllocations] = useState<AIAllocation[] | null>(null);
+  const [aiRunning, setAiRunning] = useState(false);
 
   const filtered = tasks.filter(t => statusFilter === "all" || t.status === statusFilter);
+
+  // Live AI suggestion for the form's priority based on title/description/deadline.
+  const aiSuggestion = form.title.trim()
+    ? predictPriority({
+        id: "draft",
+        title: form.title,
+        description: form.description,
+        deadline: form.deadline || undefined,
+      })
+    : null;
+
+  // Auto-allocate unassigned tasks to available volunteers.
+  function runAIAllocation() {
+    setAiRunning(true);
+    const unassigned = tasks.filter(t => !t.assignedTo || t.assignedTo.trim() === "");
+    const result = allocateTasks(
+      unassigned.map(t => ({
+        id: t.id, title: t.title, description: t.description,
+        deadline: t.deadline, requiredSkills: [],
+      })),
+      volunteers.map(v => ({
+        id: v.id, name: v.name, skills: v.skills,
+        availability: v.availability, assignedTask: v.assignedTask,
+        rating: 4.0 + ((v.id * 7) % 10) / 10,
+      }))
+    );
+    // Apply assignments locally so the UI reflects changes.
+    setTasks(prev => prev.map(t => {
+      const a = result.find(r => r.taskId === t.id && r.volunteerName);
+      return a ? { ...t, assignedTo: a.volunteerName ?? t.assignedTo } : t;
+    }));
+    setAiAllocations(result);
+    setTimeout(() => setAiRunning(false), 400);
+  }
 
   const refreshTasks = useCallback(async () => {
     try {
@@ -854,13 +892,56 @@ function TasksPage({ tasks, setTasks, volunteers }: {
           <h2 className="text-xl font-bold text-gray-900 mb-1">Task Management</h2>
           <p className="text-sm text-gray-400">Create, assign, and track tasks for your volunteers.</p>
         </FadeIn>
-        <motion.button onClick={() => { setEditId(null); setForm({ title: "", description: "", deadline: "", priority: "medium", assignedTo: "" }); setShowForm(v => !v); }}
-          whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-semibold"
-          style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }}>
-          <Plus size={16} /> Create Task
-        </motion.button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <motion.button onClick={runAIAllocation} disabled={aiRunning}
+            whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border-2 border-orange-400 text-orange-600 bg-white hover:bg-orange-50 disabled:opacity-60">
+            <Sparkles size={16} /> {aiRunning ? "Running…" : "Run AI Allocation"}
+          </motion.button>
+          <motion.button onClick={() => { setEditId(null); setForm({ title: "", description: "", deadline: "", priority: "medium", assignedTo: "" }); setShowForm(v => !v); }}
+            whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-semibold"
+            style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }}>
+            <Plus size={16} /> Create Task
+          </motion.button>
+        </div>
       </div>
+
+      <AnimatePresence>
+        {aiAllocations && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+            className="bg-white rounded-2xl p-5 shadow-sm border border-orange-200">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white"
+                  style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }}>
+                  <Sparkles size={15} />
+                </span>
+                <h3 className="font-bold text-gray-800">AI Allocation Result</h3>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-700 uppercase tracking-wide">
+                  {aiAllocations.filter(a => a.volunteerName).length} of {aiAllocations.length} matched
+                </span>
+              </div>
+              <button onClick={() => setAiAllocations(null)} className="text-gray-400 hover:text-gray-600 p-1"><X size={16} /></button>
+            </div>
+            {aiAllocations.length === 0 ? (
+              <p className="text-xs text-gray-400">All tasks already have an assignee — nothing to allocate.</p>
+            ) : (
+              <ul className="space-y-2">
+                {aiAllocations.map(a => (
+                  <li key={String(a.taskId)} className="flex items-start gap-3 p-3 rounded-xl bg-orange-50/50 border border-orange-100">
+                    <Zap size={14} className="text-orange-500 mt-0.5 shrink-0" />
+                    <div className="text-xs">
+                      <p className="font-bold text-gray-800">{a.taskTitle}</p>
+                      <p className="text-gray-600 mt-0.5">{a.reason}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {showForm && (
@@ -883,13 +964,25 @@ function TasksPage({ tasks, setTasks, volunteers }: {
                 </select>
               </div>
               <div>
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">Priority</label>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block flex items-center justify-between">
+                  <span>Priority</span>
+                  {aiSuggestion && aiSuggestion.priority !== form.priority && (
+                    <button type="button"
+                      onClick={() => setForm(f => ({ ...f, priority: aiSuggestion.priority }))}
+                      className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[10px] font-bold normal-case tracking-normal hover:bg-orange-200">
+                      <Sparkles size={10} /> AI suggests: {aiSuggestion.priority}
+                    </button>
+                  )}
+                </label>
                 <select value={form.priority} onChange={e => setForm(f => ({ ...f, priority: e.target.value as Task["priority"] }))}
                   className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-orange-400 bg-white">
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
                   <option value="high">High</option>
                 </select>
+                {aiSuggestion && (
+                  <p className="text-[10px] text-gray-400 mt-1 italic">💡 {aiSuggestion.reason}</p>
+                )}
               </div>
               <div>
                 <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">Deadline</label>
@@ -1033,6 +1126,18 @@ function ProofsPage({ proofs, setProofs }: { proofs: Proof[]; setProofs: React.D
                 </div>
                 <div className="flex flex-col items-end gap-2 shrink-0">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-bold capitalize ${statusColor[p.status]}`}>{p.status}</span>
+                  {(() => {
+                    const ai = verifyProof(p.fileName, p.fileType);
+                    const cls = ai.status === "verified" ? "bg-green-100 text-green-700"
+                      : ai.status === "suspicious" ? "bg-red-100 text-red-700"
+                      : "bg-yellow-100 text-yellow-700";
+                    const label = ai.status === "verified" ? "AI: Verified" : ai.status === "suspicious" ? "AI: Suspicious" : "Pending AI Check";
+                    return (
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold inline-flex items-center gap-1 ${cls}`}>
+                        <Sparkles size={9} /> {label}
+                      </span>
+                    );
+                  })()}
                   <motion.button whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
                     onClick={() => { setPreviewProof(p); setComment(p.comment); }}
                     className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
@@ -1405,6 +1510,17 @@ export default function NgoDashboard() {
       </div>
 
       {notifOpen && <div className="fixed inset-0 z-30" onClick={() => setNotifOpen(false)} />}
+
+      <AIChatbot
+        context={{
+          role: "ngo",
+          username: profile.adminName.split(" ")[0],
+          myTasks: tasks.map(t => ({ id: t.id, title: t.title, status: t.status, priority: t.priority, deadline: t.deadline })),
+          availableTasks: tasks.filter(t => !t.assignedTo || t.status === "assigned").map(t => ({
+            id: t.id, title: t.title, priority: t.priority, deadline: t.deadline,
+          })),
+        }}
+      />
     </div>
   );
 }

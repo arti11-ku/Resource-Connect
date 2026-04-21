@@ -9,8 +9,10 @@ import {
   ShieldCheck, AlertTriangle, BarChart2, User, LogOut, Bell,
   Menu, X, Search, Pencil, Trash2, CheckCircle2, XCircle,
   Eye, Save, Ban, RefreshCw, TrendingUp, Download, Send,
-  Plus, FileText, Flag
+  Plus, FileText, Flag, Sparkles, Zap
 } from "lucide-react";
+import AIChatbot from "../components/AIChatbot";
+import { allocateTasks, verifyProof, type AIAllocation, type AIPriority } from "../lib/ai";
 import {
   BarChart, Bar, PieChart, Pie, Cell, LineChart, Line,
   XAxis, YAxis, Tooltip, ResponsiveContainer, Legend
@@ -662,9 +664,11 @@ function ResourceMonitorPage({ resources, setResources }: { resources: ResourceE
 }
 
 // ─── Task Monitoring ──────────────────────────────────────────────────────────
-function TaskMonitorPage({ tasks }: { tasks: TaskEntry[] }) {
+function TaskMonitorPage({ tasks, users }: { tasks: TaskEntry[]; users: UserEntry[] }) {
   const [filter, setFilter] = useState<TaskStatus | "all">("all");
   const [search, setSearch] = useState("");
+  const [aiAllocations, setAiAllocations] = useState<AIAllocation[] | null>(null);
+  const [aiRunning, setAiRunning] = useState(false);
 
   const filtered = tasks.filter(t => {
     if (filter !== "all" && t.status !== filter) return false;
@@ -674,12 +678,73 @@ function TaskMonitorPage({ tasks }: { tasks: TaskEntry[] }) {
 
   const delayed = tasks.filter(t => t.status === "delayed");
 
+  function runAIAllocation() {
+    setAiRunning(true);
+    // Allocate to delayed/unassigned tasks across all NGOs.
+    const candidates = tasks.filter(t => t.status === "delayed" || t.status === "assigned").slice(0, 5);
+    const volunteers = users.filter(u => u.role === "volunteer" && u.status === "active");
+    const result = allocateTasks(
+      candidates.map(t => ({ id: t.id, title: t.title, deadline: t.deadline, requiredSkills: [] })),
+      volunteers.map(v => ({
+        id: v.id, name: v.name,
+        skills: ["First Aid", "Teaching", "Driving"].slice(0, (v.id % 3) + 1),
+        availability: v.activity === "High" ? "Full Time" : "Weekends",
+        rating: 4.0 + (v.id % 10) / 10,
+      }))
+    );
+    setAiAllocations(result);
+    setTimeout(() => setAiRunning(false), 400);
+  }
+
   return (
     <MountFade className="space-y-5">
-      <FadeIn>
-        <h2 className="text-xl font-bold text-gray-900 mb-1">Task & Activity Monitoring</h2>
-        <p className="text-sm text-gray-400">View all tasks across NGOs, track delays and inactive assignments.</p>
-      </FadeIn>
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <FadeIn>
+          <h2 className="text-xl font-bold text-gray-900 mb-1">Task & Activity Monitoring</h2>
+          <p className="text-sm text-gray-400">View all tasks across NGOs, track delays and inactive assignments.</p>
+        </FadeIn>
+        <motion.button onClick={runAIAllocation} disabled={aiRunning}
+          whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border-2 border-orange-400 text-orange-600 bg-white hover:bg-orange-50 disabled:opacity-60">
+          <Sparkles size={16} /> {aiRunning ? "Running…" : "Run AI Allocation"}
+        </motion.button>
+      </div>
+
+      <AnimatePresence>
+        {aiAllocations && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+            className="bg-white rounded-2xl p-5 shadow-sm border border-orange-200">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white"
+                  style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }}>
+                  <Sparkles size={15} />
+                </span>
+                <h3 className="font-bold text-gray-800">AI Allocation Suggestions</h3>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-700 uppercase tracking-wide">
+                  {aiAllocations.filter(a => a.volunteerName).length} of {aiAllocations.length} matched
+                </span>
+              </div>
+              <button onClick={() => setAiAllocations(null)} className="text-gray-400 hover:text-gray-600 p-1"><X size={16} /></button>
+            </div>
+            {aiAllocations.length === 0 ? (
+              <p className="text-xs text-gray-400">No delayed or unassigned tasks — system is healthy!</p>
+            ) : (
+              <ul className="space-y-2">
+                {aiAllocations.map(a => (
+                  <li key={String(a.taskId)} className="flex items-start gap-3 p-3 rounded-xl bg-orange-50/50 border border-orange-100">
+                    <Zap size={14} className="text-orange-500 mt-0.5 shrink-0" />
+                    <div className="text-xs">
+                      <p className="font-bold text-gray-800">{a.taskTitle}</p>
+                      <p className="text-gray-600 mt-0.5">{a.reason}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {delayed.length > 0 && (
         <FadeDown>
@@ -789,6 +854,18 @@ function ProofVerificationPage({ proofs, setProofs }: { proofs: ProofEntry[]; se
                 </div>
                 <div className="flex flex-col items-end gap-2 shrink-0">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-bold capitalize ${statusColor[p.status]}`}>{p.status}</span>
+                  {(() => {
+                    const ai = verifyProof(p.taskTitle, "image");
+                    const cls = ai.status === "verified" ? "bg-green-100 text-green-700"
+                      : ai.status === "suspicious" ? "bg-red-100 text-red-700"
+                      : "bg-yellow-100 text-yellow-700";
+                    const label = ai.status === "verified" ? "AI: Verified" : ai.status === "suspicious" ? "AI: Suspicious" : "Pending AI Check";
+                    return (
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold inline-flex items-center gap-1 ${cls}`}>
+                        <Sparkles size={9} /> {label}
+                      </span>
+                    );
+                  })()}
                   <motion.button whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
                     onClick={() => { setPreview(p); setComment(""); }}
                     className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
@@ -1224,7 +1301,7 @@ export default function AdminDashboard() {
               {activePage === "ngos" && <NgoManagementPage ngos={ngos} setNgos={setNgos} />}
               {activePage === "users" && <UserManagementPage users={users} setUsers={setUsers} />}
               {activePage === "resources" && <ResourceMonitorPage resources={resources} setResources={setResources} />}
-              {activePage === "tasks" && <TaskMonitorPage tasks={tasks} />}
+              {activePage === "tasks" && <TaskMonitorPage tasks={tasks} users={users} />}
               {activePage === "proofs" && <ProofVerificationPage proofs={proofs} setProofs={setProofs} />}
               {activePage === "issues" && <IssuesPage issues={issues} setIssues={setIssues} />}
               {activePage === "reports" && <ReportsPage ngos={ngos} users={users} tasks={tasks} resources={resources} />}
@@ -1235,6 +1312,21 @@ export default function AdminDashboard() {
       </div>
 
       {notifOpen && <div className="fixed inset-0 z-30" onClick={() => setNotifOpen(false)} />}
+
+      <AIChatbot
+        context={{
+          role: "admin",
+          username: profile.name.split(" ")[0],
+          myTasks: tasks.map(t => ({
+            id: t.id, title: t.title, status: t.status,
+            priority: (t.status === "delayed" ? "high" : "medium") as AIPriority,
+            deadline: t.deadline,
+          })),
+          availableTasks: tasks.filter(t => t.status === "delayed").map(t => ({
+            id: t.id, title: t.title, priority: "high" as AIPriority, deadline: t.deadline,
+          })),
+        }}
+      />
     </div>
   );
 }

@@ -11,6 +11,8 @@ import {
   Heart, Leaf, BookOpen, Stethoscope, Upload, Pencil, Save, Plus
 } from "lucide-react";
 import saharaLogo from "@assets/ChatGPT_Image_Apr_19,_2026,_08_38_53_PM_1776611355262.png";
+import AIChatbot from "../components/AIChatbot";
+import { recommendTasks, verifyProof, type AIPriority } from "../lib/ai";
 
 type Page = "dashboard" | "available-tasks" | "my-tasks" | "scoreboard" | "profile" | "settings";
 type TaskStatus = "pending" | "in-progress" | "completed";
@@ -387,6 +389,58 @@ function DashboardPage({ onNavigate, myTasksList, totalPoints, tasksCompleted, p
         </HoverCard>
       </FadeUp>
 
+      <FadeUp delay={0.08}>
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <span className="w-7 h-7 rounded-lg bg-orange-100 flex items-center justify-center">
+                <Zap size={14} className="text-orange-500" />
+              </span>
+              <h3 className="font-bold text-gray-900">Recommended Tasks for You</h3>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-600 uppercase tracking-wide">AI</span>
+            </div>
+          </div>
+          {(() => {
+            const recs = recommendTasks(
+              availableTasks.map(t => ({
+                id: t.id, title: t.title, description: t.description,
+                category: t.category, requiredSkills: t.skills, location: t.location,
+              })),
+              { skills: profile.skills, location: profile.location, pastCategories: ["Healthcare", "Environment"] },
+              3
+            );
+            const map = new Map(availableTasks.map(t => [t.id, t]));
+            const items = recs.map(r => ({ rec: r, task: map.get(r.taskId) })).filter(x => x.task);
+            if (items.length === 0) {
+              return <p className="text-xs text-gray-400">No recommendations right now — check back soon.</p>;
+            }
+            return (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                {items.map(({ rec, task }) => task && (
+                  <div key={String(task.id)} className="bg-white rounded-2xl p-4 shadow-sm border border-orange-100 hover:shadow-md transition-all flex flex-col gap-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="font-bold text-sm text-gray-900 leading-snug">{task.title}</p>
+                      <span className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-700">{rec.score}% match</span>
+                    </div>
+                    <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{task.description}</p>
+                    <p className="text-[11px] text-orange-600 font-medium">💡 {rec.reason}</p>
+                    <div className="flex items-center justify-between pt-1 mt-auto">
+                      <span className="text-xs text-gray-400">{task.location}</span>
+                      <button
+                        onClick={() => onNavigate("available-tasks")}
+                        className="px-3 py-1.5 rounded-lg text-white text-xs font-bold hover:opacity-90"
+                        style={{ background: "linear-gradient(135deg, #FF7A00, #FF9A40)" }}>
+                        View
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+        </div>
+      </FadeUp>
+
       <FadeUp delay={0.1}>
         <div>
           <div className="flex items-center justify-between mb-4">
@@ -680,12 +734,26 @@ function MyTasksPage({ myTasksList, onUpdateStatus, onUploadProof, onAddTask }: 
                     <input ref={el => { fileRefs.current[task.id] = el; }} type="file" accept="image/*,.pdf,.doc,.docx"
                       className="hidden" onChange={e => handleFileChange(task.id, e)} />
                   </div>
-                  {task.proof && (
-                    <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-green-50 border border-green-200 w-fit">
-                      <CheckCircle2 size={14} className="text-green-600" />
-                      <span className="text-xs text-green-700 font-medium">{task.proof}</span>
-                    </div>
-                  )}
+                  {task.proof && (() => {
+                    const ai = verifyProof(task.proof);
+                    const cls = ai.status === "verified"
+                      ? "bg-green-50 border-green-200 text-green-700"
+                      : ai.status === "suspicious"
+                        ? "bg-red-50 border-red-200 text-red-700"
+                        : "bg-yellow-50 border-yellow-200 text-yellow-700";
+                    const label = ai.status === "verified" ? "Verified" : ai.status === "suspicious" ? "Needs Review" : "Pending AI Check";
+                    return (
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-green-50 border border-green-200 w-fit">
+                          <CheckCircle2 size={14} className="text-green-600" />
+                          <span className="text-xs text-green-700 font-medium">{task.proof}</span>
+                        </div>
+                        <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-bold ${cls}`}>
+                          <Zap size={12} /> {label} · {ai.confidence}%
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
 
@@ -694,12 +762,26 @@ function MyTasksPage({ myTasksList, onUpdateStatus, onUploadProof, onAddTask }: 
                   <div className="flex items-center gap-2 text-green-600 text-sm font-semibold">
                     <CheckCircle2 size={16} /> Task completed — <span className="text-orange-600">+{task.points} pts awarded!</span>
                   </div>
-                  {task.proof && (
-                    <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-green-50 border border-green-200 w-fit">
-                      <CheckCircle2 size={14} className="text-green-600" />
-                      <span className="text-xs text-green-700 font-medium">Proof: {task.proof}</span>
-                    </div>
-                  )}
+                  {task.proof && (() => {
+                    const ai = verifyProof(task.proof);
+                    const cls = ai.status === "verified"
+                      ? "bg-green-50 border-green-200 text-green-700"
+                      : ai.status === "suspicious"
+                        ? "bg-red-50 border-red-200 text-red-700"
+                        : "bg-yellow-50 border-yellow-200 text-yellow-700";
+                    const label = ai.status === "verified" ? "Verified" : ai.status === "suspicious" ? "Needs Review" : "Pending AI Check";
+                    return (
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-green-50 border border-green-200 w-fit">
+                          <CheckCircle2 size={14} className="text-green-600" />
+                          <span className="text-xs text-green-700 font-medium">Proof: {task.proof}</span>
+                        </div>
+                        <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-bold ${cls}`}>
+                          <Zap size={12} /> {label} · {ai.confidence}%
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
             </HoverCard>
@@ -1277,6 +1359,20 @@ export default function VolunteerDashboard() {
           {activePage === "settings" && <SettingsPage />}
         </main>
       </div>
+
+      <AIChatbot
+        context={{
+          role: "volunteer",
+          username: volunteerProfile.name.split(" ")[0],
+          myTasks: myTasksList.map(t => ({
+            id: t.id, title: t.title, status: t.status,
+            priority: (t as { priority?: AIPriority }).priority, deadline: t.deadline,
+          })),
+          availableTasks: availableTasks.map(t => ({
+            id: t.id, title: t.title, priority: t.urgency as AIPriority, deadline: t.deadline,
+          })),
+        }}
+      />
     </div>
   );
 }
