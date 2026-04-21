@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
+import { apiFetch, type BackendTask } from "../lib/api";
 import { FadeDown, FadeUp, FadeIn, StaggerList, StaggerItem, HoverCard, MountFade, SlideInHeader, chartTooltipStyle, chartTooltipCursor } from "../lib/AnimatedComponents";
 import { useLocation } from "wouter";
 import {
@@ -15,7 +16,7 @@ type Page = "dashboard" | "available-tasks" | "my-tasks" | "scoreboard" | "profi
 type TaskStatus = "pending" | "in-progress" | "completed";
 
 interface MyTaskItem {
-  id: number;
+  id: number | string;
   title: string;
   location: string;
   deadline: string;
@@ -24,6 +25,69 @@ interface MyTaskItem {
   category: string;
   points: number;
   proof?: string;
+}
+
+type AvailableTask = {
+  id: number | string;
+  title: string;
+  location: string;
+  deadline: string;
+  time: string;
+  skills: string[];
+  urgency: "high" | "medium" | "low";
+  category: string;
+  points: number;
+  slots: number;
+  description: string;
+};
+
+function formatDateLabel(iso: string | null): string {
+  if (!iso) return "TBD";
+  try {
+    return new Date(iso).toLocaleDateString();
+  } catch {
+    return "TBD";
+  }
+}
+
+function backendTaskToAvailable(t: BackendTask): AvailableTask {
+  return {
+    id: t.id,
+    title: t.title,
+    location: t.location || "",
+    deadline: formatDateLabel(t.deadline),
+    time: "",
+    skills: t.required_skills || [],
+    urgency: t.priority,
+    category: "General",
+    points: 50,
+    slots: 1,
+    description: t.description || "",
+  };
+}
+
+function backendStatusToVolunteer(s: BackendTask["status"]): TaskStatus {
+  if (s === "completed") return "completed";
+  if (s === "in_progress") return "in-progress";
+  return "pending";
+}
+
+function volunteerStatusToBackend(s: TaskStatus): BackendTask["status"] {
+  if (s === "in-progress") return "in_progress";
+  return s;
+}
+
+function backendTaskToMine(t: BackendTask): MyTaskItem {
+  return {
+    id: t.id,
+    title: t.title,
+    location: t.location || "",
+    deadline: formatDateLabel(t.deadline),
+    time: "",
+    status: backendStatusToVolunteer(t.status),
+    category: "General",
+    points: 50,
+  };
 }
 
 interface VolunteerProfile {
@@ -92,7 +156,7 @@ function getInitialProfile(): VolunteerProfile {
 const INITIAL_POINTS = 1240;
 const INITIAL_TASKS_COMPLETED = 28;
 
-const availableTasksData = [
+const INITIAL_AVAILABLE_TASKS: AvailableTask[] = [
   { id: 1, title: "Flood Relief Distribution", location: "Kurla, Mumbai", deadline: "Apr 22, 2026", time: "9:00 AM – 1:00 PM", skills: ["First Aid", "Driving"], urgency: "high", category: "Disaster Relief", points: 120, slots: 3, description: "Help distribute essential supplies to flood-affected families." },
   { id: 2, title: "Free Medical Camp", location: "Dharavi, Mumbai", deadline: "Apr 25, 2026", time: "10:00 AM – 4:00 PM", skills: ["First Aid", "Counseling"], urgency: "high", category: "Healthcare", points: 150, slots: 2, description: "Assist doctors and nurses at a free health screening camp." },
   { id: 3, title: "Women's Skill Workshop", location: "Govandi, Mumbai", deadline: "Apr 28, 2026", time: "10:00 AM – 1:00 PM", skills: ["Teaching"], urgency: "medium", category: "Education", points: 85, slots: 5, description: "Conduct vocational skill sessions for underprivileged women." },
@@ -189,7 +253,7 @@ function StatCard({ icon: Icon, label, value, sub, color, textColor }: { icon: R
   );
 }
 
-function TaskCard({ task, accepted, onAccept }: { task: typeof availableTasksData[0]; accepted: boolean; onAccept: (id: number) => void }) {
+function TaskCard({ task, accepted, onAccept }: { task: AvailableTask; accepted: boolean; onAccept: (id: AvailableTask["id"]) => void }) {
   const urgency = urgencyConfig[task.urgency as keyof typeof urgencyConfig];
   const CategoryIcon = categoryIcons[task.category] || ClipboardList;
   return (
@@ -244,12 +308,13 @@ function TaskCard({ task, accepted, onAccept }: { task: typeof availableTasksDat
   );
 }
 
-function DashboardPage({ onNavigate, myTasksList, totalPoints, tasksCompleted, profile }: {
+function DashboardPage({ onNavigate, myTasksList, totalPoints, tasksCompleted, profile, availableTasks }: {
   onNavigate: (p: Page) => void;
   myTasksList: MyTaskItem[];
   totalPoints: number;
   tasksCompleted: number;
   profile: VolunteerProfile;
+  availableTasks: AvailableTask[];
 }) {
   const nextRank = 1360;
   const progressPct = Math.min(100, Math.round((totalPoints / nextRank) * 100));
@@ -333,7 +398,7 @@ function DashboardPage({ onNavigate, myTasksList, totalPoints, tasksCompleted, p
             </motion.button>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {availableTasksData.slice(0, 2).map(task => (
+            {availableTasks.slice(0, 2).map(task => (
               <TaskCard key={task.id} task={task} accepted={false} onAccept={() => onNavigate("available-tasks")} />
             ))}
           </div>
@@ -417,10 +482,10 @@ function DashboardPage({ onNavigate, myTasksList, totalPoints, tasksCompleted, p
   );
 }
 
-function AvailableTasksPage({ acceptedIds, onAccept }: { acceptedIds: Set<number>; onAccept: (id: number) => void }) {
+function AvailableTasksPage({ tasks, acceptedIds, onAccept }: { tasks: AvailableTask[]; acceptedIds: Set<AvailableTask["id"]>; onAccept: (id: AvailableTask["id"]) => void }) {
   const [search, setSearch] = useState("");
   const [urgencyFilter, setUrgencyFilter] = useState<"all" | "high" | "medium" | "low">("all");
-  const filtered = availableTasksData.filter(t => {
+  const filtered = tasks.filter(t => {
     const matchSearch = t.title.toLowerCase().includes(search.toLowerCase()) || t.category.toLowerCase().includes(search.toLowerCase());
     const matchUrgency = urgencyFilter === "all" || t.urgency === urgencyFilter;
     return matchSearch && matchUrgency;
@@ -460,14 +525,14 @@ function AvailableTasksPage({ acceptedIds, onAccept }: { acceptedIds: Set<number
 
 function MyTasksPage({ myTasksList, onUpdateStatus, onUploadProof, onAddTask }: {
   myTasksList: MyTaskItem[];
-  onUpdateStatus: (id: number, status: TaskStatus) => void;
-  onUploadProof: (id: number, filename: string) => void;
+  onUpdateStatus: (id: MyTaskItem["id"], status: TaskStatus) => void;
+  onUploadProof: (id: MyTaskItem["id"], filename: string) => void;
   onAddTask?: (task: MyTaskItem) => void;
 }) {
   const [filter, setFilter] = useState<"all" | "pending" | "in-progress" | "completed">("all");
   const [showAddForm, setShowAddForm] = useState(false);
   const [addForm, setAddForm] = useState({ title: "", category: "Healthcare", location: "", deadline: "", time: "", points: "50" });
-  const fileRefs = useRef<Record<number, HTMLInputElement | null>>({});
+  const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const filtered = filter === "all" ? myTasksList : myTasksList.filter(t => t.status === filter);
 
   function handleAddTask() {
@@ -483,7 +548,7 @@ function MyTasksPage({ myTasksList, onUpdateStatus, onUploadProof, onAddTask }: 
     setShowAddForm(false);
   }
 
-  function handleFileChange(taskId: number, e: React.ChangeEvent<HTMLInputElement>) {
+  function handleFileChange(taskId: MyTaskItem["id"], e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (file) onUploadProof(taskId, file.name);
   }
@@ -1017,11 +1082,33 @@ export default function VolunteerDashboard() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifIdx, setNotifIdx] = useState(0);
 
-  const [acceptedIds, setAcceptedIds] = useState<Set<number>>(new Set());
+  const [acceptedIds, setAcceptedIds] = useState<Set<MyTaskItem["id"]>>(new Set());
   const [myTasksList, setMyTasksList] = useState<MyTaskItem[]>(INITIAL_MY_TASKS);
+  const [availableTasks, setAvailableTasks] = useState<AvailableTask[]>(INITIAL_AVAILABLE_TASKS);
   const [totalPoints, setTotalPoints] = useState(INITIAL_POINTS);
   const [tasksCompleted, setTasksCompleted] = useState(INITIAL_TASKS_COMPLETED);
   const [volunteerProfile, setVolunteerProfile] = useState<VolunteerProfile>(getInitialProfile);
+
+  const refreshAvailable = useCallback(async () => {
+    try {
+      const data = await apiFetch<BackendTask[]>("/tasks/available");
+      setAvailableTasks(data.map(backendTaskToAvailable));
+    } catch {}
+  }, []);
+
+  const refreshMine = useCallback(async () => {
+    try {
+      const data = await apiFetch<BackendTask[]>("/tasks/mine");
+      const mapped = data.map(backendTaskToMine);
+      setMyTasksList(mapped);
+      setAcceptedIds(new Set(mapped.map(t => t.id)));
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    refreshAvailable();
+    refreshMine();
+  }, [refreshAvailable, refreshMine]);
 
   const scoreboardEntries: LeaderboardEntry[] = BASE_LEADERBOARD.map(e => {
     if (e.isMe) {
@@ -1037,30 +1124,52 @@ export default function VolunteerDashboard() {
     setMyTasksList(prev => [task, ...prev]);
   }
 
-  function handleAcceptTask(id: number) {
+  async function handleAcceptTask(id: AvailableTask["id"]) {
     if (acceptedIds.has(id)) return;
-    const task = availableTasksData.find(t => t.id === id);
-    if (!task) return;
+    const task = availableTasks.find(t => t.id === id);
     setAcceptedIds(prev => new Set(prev).add(id));
-    setMyTasksList(prev => [...prev, {
-      id: task.id, title: task.title, location: task.location,
-      deadline: task.deadline, time: task.time, status: "pending",
-      category: task.category, points: task.points,
-    }]);
+    if (task) {
+      setMyTasksList(prev => [...prev, {
+        id: task.id, title: task.title, location: task.location,
+        deadline: task.deadline, time: task.time, status: "pending",
+        category: task.category, points: task.points,
+      }]);
+    }
+    try {
+      await apiFetch(`/tasks/accept/${id}`, { method: "POST" });
+      await Promise.all([refreshAvailable(), refreshMine()]);
+    } catch {
+      // revert optimistic add on failure
+      setAcceptedIds(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+      setMyTasksList(prev => prev.filter(t => t.id !== id));
+    }
   }
 
-  function handleUpdateStatus(id: number, status: TaskStatus) {
+  async function handleUpdateStatus(id: MyTaskItem["id"], status: TaskStatus) {
+    const prevTask = myTasksList.find(t => t.id === id);
     setMyTasksList(prev => prev.map(t => t.id === id ? { ...t, status } : t));
-    if (status === "completed") {
-      const task = myTasksList.find(t => t.id === id);
-      if (task) {
-        setTotalPoints(p => p + task.points);
-        setTasksCompleted(c => c + 1);
+    if (status === "completed" && prevTask && prevTask.status !== "completed") {
+      setTotalPoints(p => p + prevTask.points);
+      setTasksCompleted(c => c + 1);
+    }
+    try {
+      await apiFetch(`/tasks/status/${id}`, {
+        method: "PUT",
+        body: JSON.stringify({ status: volunteerStatusToBackend(status) }),
+      });
+      await refreshMine();
+    } catch {
+      if (prevTask) {
+        setMyTasksList(prev => prev.map(t => t.id === id ? prevTask : t));
       }
     }
   }
 
-  function handleUploadProof(id: number, filename: string) {
+  function handleUploadProof(id: MyTaskItem["id"], filename: string) {
     setMyTasksList(prev => prev.map(t => t.id === id ? { ...t, proof: filename } : t));
   }
 
@@ -1160,8 +1269,8 @@ export default function VolunteerDashboard() {
         </header>
 
         <main className="flex-1 p-5 lg:p-6 overflow-auto">
-          {activePage === "dashboard" && <DashboardPage onNavigate={setActivePage} myTasksList={myTasksList} totalPoints={totalPoints} tasksCompleted={tasksCompleted} profile={volunteerProfile} />}
-          {activePage === "available-tasks" && <AvailableTasksPage acceptedIds={acceptedIds} onAccept={handleAcceptTask} />}
+          {activePage === "dashboard" && <DashboardPage onNavigate={setActivePage} myTasksList={myTasksList} totalPoints={totalPoints} tasksCompleted={tasksCompleted} profile={volunteerProfile} availableTasks={availableTasks} />}
+          {activePage === "available-tasks" && <AvailableTasksPage tasks={availableTasks} acceptedIds={acceptedIds} onAccept={handleAcceptTask} />}
           {activePage === "my-tasks" && <MyTasksPage myTasksList={myTasksList} onUpdateStatus={handleUpdateStatus} onUploadProof={handleUploadProof} onAddTask={handleAddMyTask} />}
           {activePage === "scoreboard" && <ScoreboardPage entries={scoreboardEntries} />}
           {activePage === "profile" && <ProfilePage profile={volunteerProfile} onSave={setVolunteerProfile} />}

@@ -71,6 +71,13 @@ async def update_task(
     return serialize_task(task)
 
 
+@router.get("/mine", response_model=list[TaskOut])
+async def list_my_tasks(user: dict = Depends(require_roles("volunteer"))):
+    db = get_db()
+    cursor = db.tasks.find({"assigned_to": user["_id"]}).sort("created_at", -1)
+    return [serialize_task(d) async for d in cursor]
+
+
 @router.get("/available", response_model=list[TaskOut])
 async def list_available(user: dict = Depends(require_roles("volunteer"))):
     db = get_db()

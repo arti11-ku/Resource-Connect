@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { apiFetch, type BackendTask } from "../lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FadeDown, FadeUp, FadeIn, StaggerList, StaggerItem, HoverCard,
@@ -55,13 +56,31 @@ interface Volunteer {
 }
 
 interface Task {
-  id: number;
+  id: number | string;
   title: string;
   description: string;
   deadline: string;
   priority: "low" | "medium" | "high";
   status: TaskStatus;
   assignedTo: string;
+}
+
+function backendStatusToNgo(s: BackendTask["status"]): TaskStatus {
+  if (s === "completed") return "completed";
+  if (s === "in_progress") return "in-progress";
+  return "assigned";
+}
+
+function backendTaskToNgo(t: BackendTask): Task {
+  return {
+    id: t.id,
+    title: t.title,
+    description: t.description || "",
+    deadline: t.deadline ? new Date(t.deadline).toLocaleDateString() : "",
+    priority: t.priority,
+    status: backendStatusToNgo(t.status),
+    assignedTo: t.assigned_to || "",
+  };
 }
 
 interface Proof {
@@ -756,22 +775,58 @@ function TasksPage({ tasks, setTasks, volunteers }: {
   tasks: Task[]; setTasks: React.Dispatch<React.SetStateAction<Task[]>>; volunteers: Volunteer[];
 }) {
   const [showForm, setShowForm] = useState(false);
-  const [editId, setEditId] = useState<number | null>(null);
+  const [editId, setEditId] = useState<Task["id"] | null>(null);
   const [form, setForm] = useState({ title: "", description: "", deadline: "", priority: "medium" as Task["priority"], assignedTo: "" });
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const filtered = tasks.filter(t => statusFilter === "all" || t.status === statusFilter);
 
-  function handleSubmit() {
-    if (!form.title.trim()) return;
+  const refreshTasks = useCallback(async () => {
+    try {
+      const data = await apiFetch<BackendTask[]>("/tasks/ngo");
+      setTasks(data.map(backendTaskToNgo));
+    } catch {
+      // keep current list on error
+    }
+  }, [setTasks]);
+
+  useEffect(() => { refreshTasks(); }, [refreshTasks]);
+
+  async function handleSubmit() {
+    if (!form.title.trim() || submitting) return;
+    setSubmitError(null);
+
     if (editId !== null) {
       setTasks(prev => prev.map(t => t.id === editId ? { ...t, ...form } : t));
       setEditId(null);
-    } else {
-      setTasks(prev => [...prev, { id: Date.now(), ...form, status: "assigned" as TaskStatus }]);
+      setForm({ title: "", description: "", deadline: "", priority: "medium", assignedTo: "" });
+      setShowForm(false);
+      return;
     }
-    setForm({ title: "", description: "", deadline: "", priority: "medium", assignedTo: "" });
-    setShowForm(false);
+
+    setSubmitting(true);
+    try {
+      await apiFetch<BackendTask>("/tasks/create", {
+        method: "POST",
+        body: JSON.stringify({
+          title: form.title,
+          description: form.description,
+          location: "",
+          required_skills: [],
+          deadline: form.deadline ? new Date(form.deadline).toISOString() : null,
+          priority: form.priority,
+        }),
+      });
+      await refreshTasks();
+      setForm({ title: "", description: "", deadline: "", priority: "medium", assignedTo: "" });
+      setShowForm(false);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Failed to create task");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function startEdit(t: Task) {
@@ -780,7 +835,7 @@ function TasksPage({ tasks, setTasks, volunteers }: {
     setShowForm(true);
   }
 
-  function advanceStatus(id: number) {
+  function advanceStatus(id: Task["id"]) {
     setTasks(prev => prev.map(t => {
       if (t.id !== id) return t;
       const next: TaskStatus = t.status === "assigned" ? "in-progress" : t.status === "in-progress" ? "completed" : "completed";
@@ -788,7 +843,7 @@ function TasksPage({ tasks, setTasks, volunteers }: {
     }));
   }
 
-  function handleDelete(id: number) {
+  function handleDelete(id: Task["id"]) {
     setTasks(prev => prev.filter(t => t.id !== id));
   }
 
@@ -848,11 +903,15 @@ function TasksPage({ tasks, setTasks, volunteers }: {
                   className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-orange-400 resize-none" />
               </div>
             </div>
+            {submitError && (
+              <p className="mt-3 text-xs text-red-500">{submitError}</p>
+            )}
             <div className="flex gap-3 mt-4">
-              <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={handleSubmit}
-                className="px-5 py-2.5 rounded-xl text-white text-sm font-bold"
+              <motion.button whileHover={!submitting ? { scale: 1.03 } : {}} whileTap={!submitting ? { scale: 0.97 } : {}} onClick={handleSubmit}
+                disabled={submitting}
+                className="px-5 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-60"
                 style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }}>
-                {editId !== null ? "Save Changes" : "Create Task"}
+                {submitting ? "Saving..." : editId !== null ? "Save Changes" : "Create Task"}
               </motion.button>
               <button onClick={() => setShowForm(false)}
                 className="px-5 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-500 hover:bg-gray-50">Cancel</button>
