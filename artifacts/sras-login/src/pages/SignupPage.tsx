@@ -237,56 +237,66 @@ export default function SignupPage() {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const API_BASE =
+    (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:8000";
+
+  const routeForRole = (role: Role): string => {
+    switch (role) {
+      case "reporter":
+        return "/reporter-dashboard";
+      case "volunteer":
+        return "/dashboard";
+      case "ngo":
+        return "/ngo-dashboard";
+      case "donor":
+        return "/donor-dashboard";
+      case "admin":
+        return "/admin-dashboard";
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const selectedRole = form.role;
-    if (!selectedRole) {
-      setErrors({ role: "Please select your role to continue" });
-      return;
-    }
-    if (selectedRole === "reporter") {
-      localStorage.setItem("sahara_user", JSON.stringify({
-        name: form.fullName || "",
-        email: form.email || "",
-        phone: form.phone || "",
-        city: form.city || "",
-        state: form.state || "",
-        occupation: form.occupation || "",
-        role: "reporter",
-      }));
-      setIsLoading(true);
-      setTimeout(() => {
-        window.location.href = "/reporter-dashboard";
-      }, 1200);
-      return;
-    }
-    if (selectedRole === "volunteer") {
-      localStorage.setItem("sahara_user", JSON.stringify({
-        name: form.fullName || "",
-        email: form.email || "",
-        phone: form.phone || "",
-        city: form.city || "",
-        state: form.state || "",
-        occupation: form.occupation || "",
-        skills: form.skills || [],
-        availability: {
-          day: form.availability.dayShift,
-          night: form.availability.nightShift,
-          weekdays: form.availability.weekdays,
-          weekends: form.availability.weekends,
-        },
-        gender: form.gender || "",
-        age: form.age || "",
-      }));
-      setIsLoading(true);
-      setTimeout(() => {
-        window.location.href = "/dashboard";
-      }, 1200);
-      return;
-    }
     if (!validate()) return;
+
     setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 1200);
+    try {
+      const location = [form.city, form.state].filter(Boolean).join(", ");
+      const res = await fetch(`${API_BASE}/auth/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.fullName,
+          email: form.email,
+          phone: form.phone,
+          role: form.role,
+          location,
+          password: form.password,
+          skills: form.skills,
+        }),
+      });
+
+      if (!res.ok) {
+        let detail = "Signup failed. Please try again.";
+        try {
+          const err = await res.json();
+          if (typeof err?.detail === "string") detail = err.detail;
+        } catch {}
+        setErrors({ email: detail });
+        setIsLoading(false);
+        return;
+      }
+
+      const data = await res.json();
+      if (data?.access_token) {
+        localStorage.setItem("token", data.access_token);
+      }
+      const role: Role = (data?.user?.role as Role) ?? (form.role as Role);
+      window.location.href = routeForRole(role);
+    } catch (err) {
+      setErrors({ email: "Could not reach server. Please try again." });
+      setIsLoading(false);
+    }
   };
 
   const isVolunteer = form.role === "volunteer";
