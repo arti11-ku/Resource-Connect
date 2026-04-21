@@ -20,9 +20,10 @@ import gallery6 from "@assets/WhatsApp_Image_2026-04-21_at_11.06.52_PM_177679339
 import gallery7 from "@assets/WhatsApp_Image_2026-04-21_at_11.06.53_PM_1776793392970.jpeg";
 import AIChatbot from "../components/AIChatbot";
 import EmptyState from "../components/EmptyState";
+import ImageMarquee from "../components/ImageMarquee";
 import { recommendTasks, verifyProof, type AIPriority } from "../lib/ai";
 
-const carouselImages = [
+const volunteerCarouselImages = [
   { src: gallery1, alt: "Education for All — Sahara volunteers teaching children" },
   { src: gallery2, alt: "Food Distribution Drive" },
   { src: gallery3, alt: "Beach cleanup volunteers" },
@@ -31,69 +32,6 @@ const carouselImages = [
   { src: gallery6, alt: "Tree planting in progress" },
   { src: gallery7, alt: "NGO volunteer with community" },
 ];
-
-function ImageMarquee() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    const track = trackRef.current;
-    if (!container || !track) return;
-
-    let raf = 0;
-    const update = () => {
-      const rect = container.getBoundingClientRect();
-      const center = rect.left + rect.width / 2;
-      const half = rect.width / 2;
-      const items = track.querySelectorAll<HTMLElement>("[data-marquee-item]");
-      items.forEach((el) => {
-        const r = el.getBoundingClientRect();
-        const itemCenter = r.left + r.width / 2;
-        const t = Math.min(Math.abs(itemCenter - center) / half, 1);
-        const scale = 1.12 - 0.27 * t;
-        const opacity = 1 - 0.45 * t;
-        el.style.transform = `scale(${scale.toFixed(3)})`;
-        el.style.opacity = opacity.toFixed(3);
-      });
-      raf = requestAnimationFrame(update);
-    };
-    raf = requestAnimationFrame(update);
-    return () => cancelAnimationFrame(raf);
-  }, []);
-
-  const items = [...carouselImages, ...carouselImages];
-  return (
-    <div
-      ref={containerRef}
-      className="relative overflow-hidden rounded-2xl bg-white shadow-sm border border-orange-50 py-7"
-    >
-      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-20 bg-gradient-to-r from-white to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-20 bg-gradient-to-l from-white to-transparent" />
-      <div
-        ref={trackRef}
-        className="flex w-max gap-5 animate-marquee-x px-4 items-center"
-      >
-        {items.map((img, i) => (
-          <div
-            key={i}
-            data-marquee-item
-            className="shrink-0 overflow-hidden rounded-xl shadow-md ring-1 ring-orange-50 will-change-transform origin-center"
-            style={{ transition: "opacity 0.3s ease" }}
-          >
-            <img
-              src={img.src}
-              alt={img.alt}
-              loading="lazy"
-              draggable={false}
-              className="h-40 w-64 sm:h-48 sm:w-80 object-cover block"
-            />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 type Page = "dashboard" | "available-tasks" | "my-tasks" | "scoreboard" | "profile" | "settings";
 type TaskStatus = "pending" | "in-progress" | "completed";
@@ -622,7 +560,7 @@ function DashboardPage({ onNavigate, myTasksList, totalPoints, tasksCompleted, p
       </div>
 
       <FadeUp delay={0.18}>
-        <ImageMarquee />
+        <ImageMarquee images={volunteerCarouselImages} />
       </FadeUp>
     </MountFade>
   );

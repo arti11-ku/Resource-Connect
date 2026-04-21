@@ -17,6 +17,8 @@ import saharaLogo from "@assets/ChatGPT_Image_Apr_19,_2026,_08_38_53_PM_17766113
 import LocationPicker, { type LocationValue } from "../components/LocationPicker";
 import AIChatbot from "../components/AIChatbot";
 import EmptyState from "../components/EmptyState";
+import ImageMarquee from "../components/ImageMarquee";
+import { dashboardGalleryImages } from "../lib/dashboardGallery";
 
 function Bar3DChart({ data, labelA = "Completed", labelB = "Delayed" }: {
   data: { name: string; completed: number; delayed: number }[];
@@ -353,6 +355,10 @@ function OverviewPage({ onNavigate }: { onNavigate: (p: Page) => void }) {
             </BarChart>
           </ResponsiveContainer>
         </HoverCard>
+      </FadeUp>
+
+      <FadeUp delay={0.18}>
+        <ImageMarquee images={dashboardGalleryImages} />
       </FadeUp>
     </MountFade>
   );

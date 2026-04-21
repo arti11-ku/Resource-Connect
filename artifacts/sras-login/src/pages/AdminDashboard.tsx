@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import AIChatbot from "../components/AIChatbot";
 import EmptyState from "../components/EmptyState";
+import ImageMarquee from "../components/ImageMarquee";
+import { dashboardGalleryImages } from "../lib/dashboardGallery";
 import { allocateTasks, verifyProof, type AIAllocation, type AIPriority } from "../lib/ai";
 import {
   BarChart, Bar, PieChart, Pie, Cell, LineChart, Line,
@@ -306,6 +308,10 @@ function OverviewPage({ ngos, users, tasks, resources, onNavigate }: {
             ))}
           </div>
         </HoverCard>
+      </FadeUp>
+
+      <FadeUp delay={0.18}>
+        <ImageMarquee images={dashboardGalleryImages} />
       </FadeUp>
     </MountFade>
   );

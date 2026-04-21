@@ -16,6 +16,8 @@ import {
 } from "recharts";
 import saharaLogo from "@assets/ChatGPT_Image_Apr_19,_2026,_08_38_53_PM_1776611355262.png";
 import AIChatbot from "../components/AIChatbot";
+import ImageMarquee from "../components/ImageMarquee";
+import { dashboardGalleryImages } from "../lib/dashboardGallery";
 
 const ORANGE = "#FF7A00";
 const ORANGE_LIGHT = "#FF9A40";
@@ -296,6 +298,10 @@ function OverviewPage({ donations, ngos, onNavigate }: {
             })}
           </div>
         </HoverCard>
+      </FadeUp>
+
+      <FadeUp delay={0.18}>
+        <ImageMarquee images={dashboardGalleryImages} />
       </FadeUp>
     </MountFade>
   );
