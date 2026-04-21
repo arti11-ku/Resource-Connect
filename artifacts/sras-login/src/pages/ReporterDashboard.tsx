@@ -14,6 +14,8 @@ import {
   XAxis, YAxis, Tooltip, ResponsiveContainer, Legend
 } from "recharts";
 import saharaLogo from "@assets/ChatGPT_Image_Apr_19,_2026,_08_38_53_PM_1776611355262.png";
+import LocationPicker, { type LocationValue } from "../components/LocationPicker";
+import AIChatbot from "../components/AIChatbot";
 
 function Bar3DChart({ data, labelA = "Completed", labelB = "Delayed" }: {
   data: { name: string; completed: number; delayed: number }[];
@@ -140,6 +142,7 @@ interface Issue {
   raisedAt: string;
   escalated: boolean;
   fileName?: string;
+  location?: LocationValue;
 }
 
 interface Notification {
@@ -708,6 +711,7 @@ function IssuesPage() {
   const [issues, setIssues] = useState<Issue[]>(MOCK_ISSUES);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ taskId: "", type: "delay" as IssueType, description: "", fileName: "" });
+  const [pickedLocation, setPickedLocation] = useState<LocationValue | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   function handleSubmit() {
@@ -719,9 +723,11 @@ function IssuesPage() {
       type: form.type, description: form.description,
       raisedAt: new Date().toLocaleString("en-IN", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" }),
       escalated: false, fileName: form.fileName || undefined,
+      location: pickedLocation || undefined,
     };
     setIssues(prev => [newIssue, ...prev]);
     setForm({ taskId: "", type: "delay", description: "", fileName: "" });
+    setPickedLocation(null);
     setShowForm(false);
   }
 
@@ -773,9 +779,13 @@ function IssuesPage() {
                 className="w-full p-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-orange-400 resize-none" rows={3} />
             </div>
             <div>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">Location (optional)</label>
+              <LocationPicker value={pickedLocation} onChange={setPickedLocation} />
+            </div>
+            <div>
               <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">Attach File (optional)</label>
               <input ref={fileRef} type="file" className="hidden" onChange={e => setForm(f => ({ ...f, fileName: e.target.files?.[0]?.name || "" }))} />
-              <button onClick={() => fileRef.current?.click()} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-dashed border-orange-300 text-orange-500 text-sm hover:bg-orange-50 transition-colors">
+              <button type="button" onClick={() => fileRef.current?.click()} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-dashed border-orange-300 text-orange-500 text-sm hover:bg-orange-50 transition-colors">
                 <Download size={14} /> {form.fileName || "Choose file"}
               </button>
             </div>
@@ -816,6 +826,17 @@ function IssuesPage() {
               <div className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 border border-gray-100 mb-3 w-fit">
                 <FileText size={13} className="text-orange-400" />
                 <span className="text-xs text-gray-600">{issue.fileName}</span>
+              </div>
+            )}
+            {issue.location && (
+              <div className="flex items-start gap-2 p-2 rounded-lg bg-orange-50 border border-orange-100 mb-3">
+                <MapPin size={13} className="text-orange-500 mt-0.5 shrink-0" />
+                <div className="text-xs text-gray-700 min-w-0">
+                  <p className="font-semibold truncate">{issue.location.address}</p>
+                  <p className="text-[11px] text-gray-500">
+                    {issue.location.lat.toFixed(5)}, {issue.location.lng.toFixed(5)}
+                  </p>
+                </div>
               </div>
             )}
             <p className="text-xs text-gray-400">Raised: {issue.raisedAt}</p>
@@ -1374,6 +1395,8 @@ export default function ReporterDashboard() {
         </main>
       </div>
       {notifOpen && <div className="fixed inset-0 z-30" onClick={() => setNotifOpen(false)} />}
+
+      <AIChatbot context={{ role: "reporter", username: profile.name.split(" ")[0] }} />
     </div>
   );
 }

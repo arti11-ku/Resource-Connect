@@ -15,6 +15,7 @@ import {
   XAxis, YAxis, Tooltip, ResponsiveContainer, Legend
 } from "recharts";
 import saharaLogo from "@assets/ChatGPT_Image_Apr_19,_2026,_08_38_53_PM_1776611355262.png";
+import AIChatbot from "../components/AIChatbot";
 
 const ORANGE = "#FF7A00";
 const ORANGE_LIGHT = "#FF9A40";
@@ -1023,6 +1024,8 @@ export default function DonorDashboard() {
       </div>
 
       {notifOpen && <div className="fixed inset-0 z-30" onClick={() => setNotifOpen(false)} />}
+
+      <AIChatbot context={{ role: "donor", username: profile.name.split(" ")[0] }} />
     </div>
   );
 }
