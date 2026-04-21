@@ -5,6 +5,7 @@ import { Eye, EyeOff, Mail, Lock, ChevronDown } from "lucide-react";
 import saharaLogo from "@assets/ChatGPT_Image_Apr_19,_2026,_08_38_53_PM_1776611355262.png";
 import { Marquee, PulseRing } from "../lib/AnimatedComponents";
 import SocialAuthButtons from "../components/SocialAuthButtons";
+import TermsModal from "../components/TermsModal";
 import type { Role as AuthRole } from "../lib/socialAuth";
 
 type Role = "reporter" | "ngo" | "admin" | "volunteer" | "donor";
@@ -94,6 +95,11 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [roleOpen, setRoleOpen] = useState(false);
+
+  // Terms & Conditions / Privacy Policy modal state.
+  const [termsOpen, setTermsOpen] = useState(false);
+  const [termsTitle, setTermsTitle] = useState<"Terms & Conditions" | "Privacy Policy">("Terms & Conditions");
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
@@ -488,9 +494,26 @@ export default function LoginPage() {
 
             <p className="mt-3 text-center text-xs text-gray-400 leading-relaxed">
               By continuing, you agree to Sahara's{" "}
-              <motion.button whileHover={{ color: "#FF7A00" }} type="button" className="text-orange-400 hover:text-orange-500 transition-colors">Terms of Service</motion.button>
+              <motion.button
+                whileHover={{ color: "#FF7A00" }}
+                type="button"
+                onClick={() => { setTermsTitle("Terms & Conditions"); setTermsOpen(true); }}
+                className="text-orange-400 hover:text-orange-500 transition-colors"
+              >
+                Terms of Service
+              </motion.button>
               {" "}and{" "}
-              <motion.button whileHover={{ color: "#FF7A00" }} type="button" className="text-orange-400 hover:text-orange-500 transition-colors">Privacy Policy</motion.button>
+              <motion.button
+                whileHover={{ color: "#FF7A00" }}
+                type="button"
+                onClick={() => { setTermsTitle("Privacy Policy"); setTermsOpen(true); }}
+                className="text-orange-400 hover:text-orange-500 transition-colors"
+              >
+                Privacy Policy
+              </motion.button>
+              {termsAccepted && (
+                <span className="block mt-1 text-green-600">✓ Terms accepted</span>
+              )}
             </p>
           </div>
         </div>
@@ -512,6 +535,13 @@ export default function LoginPage() {
         </p>
         <Marquee items={partnerItems} speed={36} gap={12} fadeEdges />
       </motion.div>
+
+      <TermsModal
+        open={termsOpen}
+        title={termsTitle}
+        onClose={() => setTermsOpen(false)}
+        onAccept={() => setTermsAccepted(true)}
+      />
     </div>
   );
 }

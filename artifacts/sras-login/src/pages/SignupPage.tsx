@@ -6,7 +6,9 @@ import {
 } from "lucide-react";
 import saharaLogo from "@assets/ChatGPT_Image_Apr_19,_2026,_08_38_53_PM_1776611355262.png";
 import SocialAuthButtons from "../components/SocialAuthButtons";
+import TermsModal from "../components/TermsModal";
 import type { Role as AuthRole } from "../lib/socialAuth";
+import { passwordRules, isPasswordValid } from "../lib/passwordValidation";
 
 type Role = "reporter" | "ngo" | "admin" | "volunteer" | "donor";
 type Gender = "male" | "female" | "other";
@@ -188,6 +190,15 @@ export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
 
+  // Terms & Conditions / Privacy Policy modal state.
+  const [termsOpen, setTermsOpen] = useState(false);
+  const [termsTitle, setTermsTitle] = useState<"Terms & Conditions" | "Privacy Policy">("Terms & Conditions");
+  const [termsAccepted, setTermsAccepted] = useState(false);
+
+  // Track whether the user has interacted with the password field so we don't
+  // show validation errors on an empty, untouched field.
+  const [passwordTouched, setPasswordTouched] = useState(false);
+
   const [form, setForm] = useState<FormState>({
     fullName: "", age: "", gender: "", state: "", city: "",
     occupation: "", email: "", phone: "", password: "", confirmPassword: "",
@@ -231,7 +242,7 @@ export default function SignupPage() {
     if (!form.phone) e.phone = "Phone number is required";
     else if (!/^\d{10}$/.test(form.phone)) e.phone = "Enter a valid 10-digit phone number";
     if (!form.password) e.password = "Password is required";
-    else if (form.password.length < 6) e.password = "Password must be at least 6 characters";
+    else if (!isPasswordValid(form.password)) e.password = "Password does not meet the security requirements";
     if (!form.confirmPassword) e.confirmPassword = "Please confirm your password";
     else if (form.password !== form.confirmPassword) e.confirmPassword = "Passwords do not match";
     if (!form.role) e.role = "Please select your role";
@@ -256,6 +267,12 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!termsAccepted) {
+      // Force the user to open and accept the Terms modal before submitting.
+      setTermsTitle("Terms & Conditions");
+      setTermsOpen(true);
+      return;
+    }
     if (!validate()) return;
 
     setIsLoading(true);
@@ -412,27 +429,46 @@ export default function SignupPage() {
                       icon={Phone}
                     />
 
-                    <InputField
-                      label="Password"
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Min. 6 characters"
-                      value={form.password}
-                      onChange={v => set("password", v)}
-                      error={errors.password}
-                      icon={Lock}
-                      autoComplete="new-password"
-                      suffix={
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(v => !v)}
-                          className="text-gray-400 hover:text-orange-500 transition-colors"
-                          tabIndex={-1}
-                        >
-                          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                        </button>
-                      }
-                    />
+                    <div>
+                      <InputField
+                        label="Password"
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Min. 8 chars, mix letters, number & symbol"
+                        value={form.password}
+                        onChange={v => { set("password", v); if (!passwordTouched) setPasswordTouched(true); }}
+                        error={errors.password}
+                        icon={Lock}
+                        autoComplete="new-password"
+                        suffix={
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(v => !v)}
+                            className="text-gray-400 hover:text-orange-500 transition-colors"
+                            tabIndex={-1}
+                          >
+                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        }
+                      />
+                      {/* Real-time rule feedback — only while typing/after interaction. */}
+                      {passwordTouched && form.password.length > 0 && !isPasswordValid(form.password) && (
+                        <ul className="mt-2 ml-0.5 space-y-1">
+                          {passwordRules.map(rule => {
+                            const ok = rule.test(form.password);
+                            return (
+                              <li
+                                key={rule.key}
+                                className={`text-[11px] flex items-center gap-1.5 transition-colors ${ok ? "text-green-600" : "text-red-500"}`}
+                              >
+                                <span className="inline-block w-3 text-center">{ok ? "✓" : "•"}</span>
+                                {rule.label}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </div>
 
                     <InputField
                       label="Confirm Password"
@@ -588,7 +624,7 @@ export default function SignupPage() {
 
                 <button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || !isPasswordValid(form.password) || !termsAccepted}
                   className="w-full py-3.5 rounded-xl text-white font-semibold text-sm tracking-wide transition-all duration-200 hover:opacity-90 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed shadow-md hover:shadow-lg mt-2"
                   style={{
                     background: isLoading
@@ -636,9 +672,26 @@ export default function SignupPage() {
 
             <p className="mt-3 text-center text-xs text-gray-400 leading-relaxed">
               By signing up, you agree to Sahara's{" "}
-              <button type="button" className="text-orange-400 hover:text-orange-500 transition-colors">Terms of Service</button>
+              <button
+                type="button"
+                onClick={() => { setTermsTitle("Terms & Conditions"); setTermsOpen(true); }}
+                className="text-orange-400 hover:text-orange-500 transition-colors"
+              >
+                Terms of Service
+              </button>
               {" "}and{" "}
-              <button type="button" className="text-orange-400 hover:text-orange-500 transition-colors">Privacy Policy</button>
+              <button
+                type="button"
+                onClick={() => { setTermsTitle("Privacy Policy"); setTermsOpen(true); }}
+                className="text-orange-400 hover:text-orange-500 transition-colors"
+              >
+                Privacy Policy
+              </button>
+              {termsAccepted && (
+                <span className="block mt-1 text-green-600">
+                  ✓ Terms accepted
+                </span>
+              )}
             </p>
           </div>
         </div>
@@ -647,6 +700,13 @@ export default function SignupPage() {
           Smart Resource Allocation System · Sahara
         </p>
       </div>
+
+      <TermsModal
+        open={termsOpen}
+        title={termsTitle}
+        onClose={() => setTermsOpen(false)}
+        onAccept={() => setTermsAccepted(true)}
+      />
     </div>
   );
 }
