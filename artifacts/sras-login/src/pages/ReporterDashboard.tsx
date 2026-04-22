@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { motion } from "framer-motion";
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { FadeDown, FadeUp, FadeIn, StaggerList, StaggerItem, HoverCard, MountFade, SlideInHeader, chartTooltipStyle, chartTooltipCursor } from "../lib/AnimatedComponents";
 import {
   LayoutDashboard, ClipboardList, ShieldCheck, AlertTriangle,
@@ -7,8 +7,11 @@ import {
   CheckCircle2, XCircle, Clock, Eye, Download, Flag,
   MessageSquare, Send, Filter, Search, ChevronRight,
   FileText, TrendingUp, Users, Zap, RefreshCw, Circle,
-  Upload, Plus, Pencil, Save, MapPin
+  Upload, Plus, Pencil, Save, MapPin, Sparkles, Image as ImageIcon,
+  Heart, Trees, UtensilsCrossed
 } from "lucide-react";
+import { useToast } from "../hooks/use-toast";
+import { geminiChat, type GeminiMsg } from "../lib/chatApi";
 import {
   BarChart, Bar, PieChart, Pie, Cell, LineChart, Line,
   XAxis, YAxis, Tooltip, ResponsiveContainer, Legend
@@ -19,6 +22,15 @@ import AIChatbot from "../components/AIChatbot";
 import EmptyState from "../components/EmptyState";
 import ImageMarquee from "../components/ImageMarquee";
 import { dashboardGalleryImages } from "../lib/dashboardGallery";
+import floatImg1 from "@assets/images_(5)_1776836265158.jpg";
+import floatImg2 from "@assets/images_(4)_1776836265159.jpg";
+import floatImg3 from "@assets/53bbbde9-f19f-4cbd-9f2b-f6e4f02f10ce_1776836265160.jpg";
+import floatImg4 from "@assets/images_(3)_1776836265160.jpg";
+import floatImg5 from "@assets/NGOsource-Content-2.0--23.11.20---Nigerian-NGOs_IS_1776836265161.jpg";
+import floatImg6 from "@assets/images_(2)_1776836265161.jpg";
+import floatImg7 from "@assets/Medical_Camp_1776836265162.jpeg";
+
+const FLOATING_IMAGES = [floatImg1, floatImg2, floatImg3, floatImg4, floatImg5, floatImg6, floatImg7];
 
 function Bar3DChart({ data, labelA = "Completed", labelB = "Delayed" }: {
   data: { name: string; completed: number; delayed: number }[];
@@ -285,9 +297,47 @@ function StatCard({ icon: Icon, label, value, sub, color }: { icon: React.Elemen
   );
 }
 
+function FloatingBackground() {
+  const positions = [
+    { top: "6%", left: "4%", size: 70, delay: 0 },
+    { top: "18%", right: "6%", size: 56, delay: 0.6 },
+    { top: "48%", left: "2%", size: 64, delay: 1.2 },
+    { top: "62%", right: "3%", size: 78, delay: 0.3 },
+    { top: "82%", left: "8%", size: 52, delay: 0.9 },
+    { top: "30%", right: "20%", size: 48, delay: 1.5 },
+    { top: "75%", right: "18%", size: 60, delay: 0.4 },
+  ];
+  return (
+    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden>
+      {positions.map((p, i) => (
+        <motion.img
+          key={i}
+          src={FLOATING_IMAGES[i % FLOATING_IMAGES.length]}
+          alt=""
+          style={{
+            position: "absolute",
+            top: p.top,
+            left: (p as any).left,
+            right: (p as any).right,
+            width: p.size,
+            height: p.size,
+            borderRadius: "50%",
+            objectFit: "cover",
+            opacity: 0.10,
+            filter: "blur(0.5px)",
+            boxShadow: "0 8px 24px rgba(255,122,0,0.15)",
+          }}
+          animate={{ y: [0, -12, 0, 10, 0], rotate: [0, 3, 0, -3, 0] }}
+          transition={{ duration: 8 + i, repeat: Infinity, ease: "easeInOut", delay: p.delay }}
+        />
+      ))}
+    </div>
+  );
+}
+
 function OverviewPage({ onNavigate }: { onNavigate: (p: Page) => void }) {
   return (
-    <MountFade className="space-y-6">
+    <MountFade className="space-y-6 relative">
       <FadeIn>
         <h2 className="text-xl font-bold text-gray-900 mb-1">Dashboard Overview</h2>
         <p className="text-sm text-gray-400">Monitor all tasks, proofs, and field activity at a glance.</p>
@@ -531,13 +581,12 @@ function TasksPage() {
 }
 
 function ProofsPage() {
+  const { toast } = useToast();
   const [proofs, setProofs] = useState<Proof[]>(MOCK_PROOFS);
   const [activeProof, setActiveProof] = useState<Proof | null>(null);
+  const [detailProof, setDetailProof] = useState<Proof | null>(null);
   const [comment, setComment] = useState("");
   const [filter, setFilter] = useState<ProofStatus | "all">("all");
-  const [imageMap, setImageMap] = useState<Record<number, string>>({});
-  const [fullViewImg, setFullViewImg] = useState<string | null>(null);
-  const fileRefs = useRef<Record<number, HTMLInputElement | null>>({});
 
   const filtered = proofs.filter(p => filter === "all" || p.status === filter);
 
@@ -545,19 +594,12 @@ function ProofsPage() {
     setProofs(prev => prev.map(p => p.id === id ? { ...p, status: action, comment } : p));
     setActiveProof(null);
     setComment("");
-  }
-
-  function handleImageUpload(proofId: number, e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      if (ev.target?.result) {
-        setImageMap(prev => ({ ...prev, [proofId]: ev.target!.result as string }));
-        setProofs(prev => prev.map(p => p.id === proofId ? { ...p, fileName: file.name } : p));
-      }
-    };
-    reader.readAsDataURL(file);
+    toast({
+      title: action === "approved" ? "Proof Approved" : "Proof Rejected",
+      description: action === "approved"
+        ? "The volunteer has been notified of the approval."
+        : "The volunteer has been notified to resubmit.",
+    });
   }
 
   return (
@@ -583,7 +625,8 @@ function ProofsPage() {
       <StaggerList className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {filtered.map(proof => (
           <StaggerItem key={proof.id}>
-          <HoverCard className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50">
+          <HoverCard className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50 cursor-pointer"
+            onClick={() => setDetailProof(proof)}>
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-xl">{proof.emoji}</div>
@@ -600,54 +643,33 @@ function ProofsPage() {
               </span>
             </div>
 
-            {imageMap[proof.id] ? (
-              <div className="mb-3 relative group cursor-pointer rounded-xl overflow-hidden border border-orange-100"
-                onClick={() => setFullViewImg(imageMap[proof.id])}>
-                <img src={imageMap[proof.id]} alt="Proof" className="w-full h-36 object-cover" />
-                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                  <span className="text-white text-xs font-bold flex items-center gap-1.5 bg-black/50 px-3 py-1.5 rounded-full">
-                    <Eye size={13} /> View Full Image
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50 border border-gray-100 mb-3">
-                {proof.fileType === "image" ? <Eye size={15} className="text-orange-400 shrink-0" /> : <FileText size={15} className="text-orange-400 shrink-0" />}
-                <span className="text-sm text-gray-600 truncate font-medium flex-1">{proof.fileName}</span>
-              </div>
-            )}
-
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-xs text-gray-400">Uploaded: {proof.uploadedAt}</p>
-              <div className="flex items-center gap-2">
-                <input ref={el => { fileRefs.current[proof.id] = el; }} type="file" accept="image/*"
-                  className="hidden" onChange={e => handleImageUpload(proof.id, e)} />
-                <button onClick={() => fileRefs.current[proof.id]?.click()}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-dashed border-orange-300 text-orange-500 text-xs hover:bg-orange-50 transition-colors">
-                  <Upload size={11} /> {imageMap[proof.id] ? "Replace" : "Upload Image"}
-                </button>
-                {imageMap[proof.id] && (
-                  <button onClick={() => setFullViewImg(imageMap[proof.id])}
-                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-50 border border-orange-200 text-orange-600 text-xs hover:bg-orange-100 transition-colors">
-                    <Eye size={11} /> Full View
-                  </button>
-                )}
-              </div>
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50 border border-gray-100 mb-3">
+              {proof.fileType === "image" ? <Eye size={15} className="text-orange-400 shrink-0" /> : <FileText size={15} className="text-orange-400 shrink-0" />}
+              <span className="text-sm text-gray-600 truncate font-medium flex-1">{proof.fileName}</span>
             </div>
+
+            <p className="text-xs text-gray-400 mb-3">Uploaded: {proof.uploadedAt}</p>
+
             {proof.comment && (
               <div className="text-xs text-gray-500 italic bg-gray-50 rounded-lg p-2.5 mb-3 border border-gray-100">
                 💬 {proof.comment}
               </div>
             )}
-            {proof.status === "pending" && (
+            {proof.status === "pending" ? (
               <motion.button
-                onClick={() => { setActiveProof(proof); setComment(""); }}
+                onClick={(e) => { e.stopPropagation(); setActiveProof(proof); setComment(""); }}
                 whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
                 transition={{ duration: 0.15 }}
                 className="w-full py-2 rounded-xl text-sm font-semibold text-white"
                 style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }}>
                 Review Proof
               </motion.button>
+            ) : (
+              <button
+                onClick={(e) => { e.stopPropagation(); setDetailProof(proof); }}
+                className="w-full py-2 rounded-xl text-sm font-semibold text-orange-600 border border-orange-200 hover:bg-orange-50 transition-colors flex items-center justify-center gap-1.5">
+                <Eye size={14} /> View Details
+              </button>
             )}
           </HoverCard>
           </StaggerItem>
@@ -663,9 +685,15 @@ function ProofsPage() {
         )}
       </StaggerList>
 
+      <AnimatePresence>
       {activeProof && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.5)" }}>
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.5)" }}>
+          <motion.div
+            initial={{ scale: 0.92, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 10 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-gray-900">Review Proof</h3>
               <button onClick={() => setActiveProof(null)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
@@ -674,25 +702,13 @@ function ProofsPage() {
               <p className="font-semibold text-gray-800 text-sm">{activeProof.taskTitle}</p>
               <p className="text-xs text-gray-500 mt-0.5">By {activeProof.volunteer} · {activeProof.fileName}</p>
             </div>
-            {imageMap[activeProof.id] ? (
-              <div className="mb-4 relative group cursor-pointer rounded-xl overflow-hidden border border-gray-200"
-                onClick={() => setFullViewImg(imageMap[activeProof.id])}>
-                <img src={imageMap[activeProof.id]} alt="Proof" className="w-full h-44 object-cover" />
-                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                  <span className="text-white text-xs font-bold bg-black/50 px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                    <Eye size={12} /> Click for Full View
-                  </span>
-                </div>
+            <div className="mb-4 h-36 bg-gray-100 rounded-xl flex items-center justify-center border border-gray-200">
+              <div className="text-center">
+                <span className="text-4xl">{activeProof.emoji}</span>
+                <p className="text-xs text-gray-400 mt-2">{activeProof.fileType === "image" ? "Submitted by volunteer" : "Document"}</p>
+                <p className="text-xs text-gray-500 font-medium">{activeProof.fileName}</p>
               </div>
-            ) : (
-              <div className="mb-4 h-36 bg-gray-100 rounded-xl flex items-center justify-center border border-gray-200">
-                <div className="text-center">
-                  <span className="text-4xl">{activeProof.emoji}</span>
-                  <p className="text-xs text-gray-400 mt-2">{activeProof.fileType === "image" ? "No image uploaded yet" : "Document"}</p>
-                  <p className="text-xs text-gray-500 font-medium">{activeProof.fileName}</p>
-                </div>
-              </div>
-            )}
+            </div>
             <textarea
               value={comment}
               onChange={e => setComment(e.target.value)}
@@ -701,35 +717,94 @@ function ProofsPage() {
               rows={3} />
             <div className="flex gap-3">
               <button onClick={() => handleAction(activeProof.id, "approved")}
-                className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 transition-colors">
+                className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 active:scale-95 transition-all">
                 <CheckCircle2 size={15} /> Approve
               </button>
               <button onClick={() => handleAction(activeProof.id, "rejected")}
-                className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 transition-colors">
+                className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 active:scale-95 transition-all">
                 <XCircle size={15} /> Reject
               </button>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
-      {fullViewImg && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.85)" }}
-          onClick={() => setFullViewImg(null)}>
-          <div className="relative max-w-3xl w-full" onClick={e => e.stopPropagation()}>
-            <button onClick={() => setFullViewImg(null)}
-              className="absolute -top-10 right-0 text-white/80 hover:text-white transition-colors flex items-center gap-1.5 text-sm">
-              <X size={18} /> Close
-            </button>
-            <img src={fullViewImg} alt="Full view" className="w-full max-h-[80vh] object-contain rounded-xl shadow-2xl" />
-          </div>
-        </div>
+      <AnimatePresence>
+      {detailProof && (
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          onClick={() => setDetailProof(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.55)" }}>
+          <motion.div
+            initial={{ scale: 0.92, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 10 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            onClick={e => e.stopPropagation()}
+            className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 flex items-center justify-between text-white"
+              style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }}>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{detailProof.emoji}</span>
+                <div>
+                  <p className="font-bold text-sm">Proof Details</p>
+                  <p className="text-xs opacity-90">{detailProof.taskTitle}</p>
+                </div>
+              </div>
+              <button onClick={() => setDetailProof(null)} className="p-1 rounded-lg hover:bg-white/20"><X size={18} /></button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl bg-orange-50/50 border border-orange-100">
+                  <p className="text-[10px] font-bold text-orange-400 uppercase tracking-wide mb-1">Volunteer</p>
+                  <p className="text-sm font-semibold text-gray-800">{detailProof.volunteer}</p>
+                </div>
+                <div className="p-3 rounded-xl bg-orange-50/50 border border-orange-100">
+                  <p className="text-[10px] font-bold text-orange-400 uppercase tracking-wide mb-1">Status</p>
+                  <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${
+                    detailProof.status === "approved" ? "bg-green-100 text-green-700" :
+                    detailProof.status === "rejected" ? "bg-red-100 text-red-700" :
+                    "bg-yellow-100 text-yellow-700"}`}>
+                    {detailProof.status.charAt(0).toUpperCase() + detailProof.status.slice(1)}
+                  </span>
+                </div>
+                <div className="p-3 rounded-xl bg-orange-50/50 border border-orange-100">
+                  <p className="text-[10px] font-bold text-orange-400 uppercase tracking-wide mb-1">File Name</p>
+                  <p className="text-sm font-semibold text-gray-800 truncate">{detailProof.fileName}</p>
+                </div>
+                <div className="p-3 rounded-xl bg-orange-50/50 border border-orange-100">
+                  <p className="text-[10px] font-bold text-orange-400 uppercase tracking-wide mb-1">File Type</p>
+                  <p className="text-sm font-semibold text-gray-800 capitalize">{detailProof.fileType}</p>
+                </div>
+                <div className="p-3 rounded-xl bg-orange-50/50 border border-orange-100 col-span-2">
+                  <p className="text-[10px] font-bold text-orange-400 uppercase tracking-wide mb-1">Uploaded At</p>
+                  <p className="text-sm font-semibold text-gray-800">{detailProof.uploadedAt}</p>
+                </div>
+                {detailProof.comment && (
+                  <div className="p-3 rounded-xl bg-orange-50/50 border border-orange-100 col-span-2">
+                    <p className="text-[10px] font-bold text-orange-400 uppercase tracking-wide mb-1">Reviewer Comment</p>
+                    <p className="text-sm text-gray-700 italic">{detailProof.comment}</p>
+                  </div>
+                )}
+              </div>
+              {detailProof.status === "pending" && (
+                <button
+                  onClick={() => { setActiveProof(detailProof); setDetailProof(null); setComment(""); }}
+                  className="w-full py-2.5 rounded-xl text-white text-sm font-bold"
+                  style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }}>
+                  Review This Proof
+                </button>
+              )}
+            </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </MountFade>
   );
 }
 
 function IssuesPage() {
+  const { toast } = useToast();
   const [issues, setIssues] = useState<Issue[]>(MOCK_ISSUES);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ taskId: "", type: "delay" as IssueType, description: "", fileName: "" });
@@ -737,7 +812,10 @@ function IssuesPage() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   function handleSubmit() {
-    if (!form.taskId || !form.description) return;
+    if (!form.taskId || !form.description) {
+      toast({ title: "Missing fields", description: "Please select a task and add a description.", variant: "destructive" });
+      return;
+    }
     const task = MOCK_TASKS.find(t => t.id === Number(form.taskId));
     if (!task) return;
     const newIssue: Issue = {
@@ -751,10 +829,12 @@ function IssuesPage() {
     setForm({ taskId: "", type: "delay", description: "", fileName: "" });
     setPickedLocation(null);
     setShowForm(false);
+    toast({ title: "Issue Flagged", description: `"${task.title}" has been added to Issue Reporting.` });
   }
 
   function handleEscalate(id: number) {
     setIssues(prev => prev.map(i => i.id === id ? { ...i, escalated: true } : i));
+    toast({ title: "Issue Escalated", description: "Admin team has been notified." });
   }
 
   return (
@@ -887,6 +967,175 @@ interface ReportEntry {
   category: string;
 }
 
+type ReviewCategory = "blood" | "tree" | "food" | "other";
+
+interface ReviewImage {
+  id: number;
+  src: string;
+  name: string;
+  label: string;
+  category: ReviewCategory;
+  uploadedAt: string;
+}
+
+const CATEGORY_KEYWORDS: Record<Exclude<ReviewCategory, "other">, string[]> = {
+  blood: ["blood", "donation", "donor", "transfusion", "plasma", "bloodbank", "blood-bank"],
+  tree: ["tree", "plant", "plantation", "sapling", "forest", "green", "reforest"],
+  food: ["food", "meal", "feed", "feeding", "ration", "hunger", "kitchen", "distribution"],
+};
+
+function classifyImage(label: string, fileName: string): ReviewCategory {
+  const text = `${label} ${fileName}`.toLowerCase();
+  for (const [cat, keywords] of Object.entries(CATEGORY_KEYWORDS) as [Exclude<ReviewCategory, "other">, string[]][]) {
+    if (keywords.some(k => text.includes(k))) return cat;
+  }
+  return "other";
+}
+
+const CATEGORY_META: Record<ReviewCategory, { label: string; color: string; bg: string; icon: React.ElementType }> = {
+  blood: { label: "Blood Donation", color: "text-red-600", bg: "bg-red-50 border-red-200", icon: Heart },
+  tree: { label: "Tree Plantation", color: "text-green-600", bg: "bg-green-50 border-green-200", icon: Trees },
+  food: { label: "Food Distribution", color: "text-amber-600", bg: "bg-amber-50 border-amber-200", icon: UtensilsCrossed },
+  other: { label: "Other Reviews", color: "text-slate-600", bg: "bg-slate-50 border-slate-200", icon: ImageIcon },
+};
+
+function SmartReviewSection() {
+  const { toast } = useToast();
+  const [images, setImages] = useState<ReviewImage[]>([]);
+  const [label, setLabel] = useState("");
+  const [active, setActive] = useState<ReviewImage | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  function handleFiles(files: FileList | null) {
+    if (!files || !files.length) return;
+    Array.from(files).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = ev => {
+        if (!ev.target?.result) return;
+        const cat = classifyImage(label, file.name);
+        const img: ReviewImage = {
+          id: Date.now() + Math.random(),
+          src: ev.target.result as string,
+          name: file.name,
+          label: label.trim() || file.name.replace(/\.[^.]+$/, ""),
+          category: cat,
+          uploadedAt: new Date().toLocaleString("en-IN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }),
+        };
+        setImages(prev => [img, ...prev]);
+        toast({
+          title: "Image Categorized",
+          description: `Sent to ${CATEGORY_META[cat].label}.`,
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+    setLabel("");
+    if (fileRef.current) fileRef.current.value = "";
+  }
+
+  const grouped: Record<ReviewCategory, ReviewImage[]> = { blood: [], tree: [], food: [], other: [] };
+  for (const img of images) grouped[img.category].push(img);
+
+  return (
+    <div className="bg-white rounded-2xl p-5 shadow-sm border border-orange-100 space-y-5">
+      <div className="flex items-start justify-between flex-wrap gap-3">
+        <div>
+          <h3 className="font-bold text-gray-800 flex items-center gap-2">
+            <Sparkles size={16} className="text-orange-500" /> Smart Review Gallery
+          </h3>
+          <p className="text-xs text-gray-400 mt-0.5">Upload review images — they'll be auto-sorted into categories using context.</p>
+        </div>
+      </div>
+
+      <div className="p-4 rounded-xl border border-dashed border-orange-300 bg-orange-50/40 space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-[1fr,auto] gap-3">
+          <input value={label} onChange={e => setLabel(e.target.value)}
+            placeholder="Optional label/context (e.g. 'Blood donation drive in Dadar')"
+            className="px-3 py-2.5 rounded-xl border border-orange-200 text-sm bg-white focus:outline-none focus:border-orange-400" />
+          <input ref={fileRef} type="file" accept="image/*" multiple className="hidden"
+            onChange={e => handleFiles(e.target.files)} />
+          <motion.button onClick={() => fileRef.current?.click()}
+            whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-semibold"
+            style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }}>
+            <Upload size={15} /> Upload Image
+          </motion.button>
+        </div>
+        <p className="text-xs text-gray-500">
+          Tip: include keywords like <span className="font-semibold text-red-600">blood</span>, <span className="font-semibold text-green-600">tree</span> or <span className="font-semibold text-amber-600">food</span> in the label or filename for accurate categorization.
+        </p>
+      </div>
+
+      {(["blood", "tree", "food", "other"] as ReviewCategory[]).map(cat => {
+        const list = grouped[cat];
+        const meta = CATEGORY_META[cat];
+        const Icon = meta.icon;
+        return (
+          <div key={cat} className={`rounded-xl border ${meta.bg} p-4`}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Icon size={16} className={meta.color} />
+                <p className={`font-bold text-sm ${meta.color}`}>{meta.label}</p>
+              </div>
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-white/80 text-gray-600">{list.length}</span>
+            </div>
+            {list.length === 0 ? (
+              <p className="text-xs text-gray-400 italic">No images yet — upload one with this category's keywords.</p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                {list.map(img => (
+                  <motion.button key={img.id}
+                    whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.97 }}
+                    onClick={() => setActive(img)}
+                    className="relative group rounded-lg overflow-hidden border border-white shadow-sm aspect-square cursor-pointer">
+                    <img src={img.src} alt={img.label} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-end">
+                      <p className="text-[10px] text-white font-medium p-1.5 opacity-0 group-hover:opacity-100 truncate w-full bg-black/40">
+                        {img.label}
+                      </p>
+                    </div>
+                  </motion.button>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      <AnimatePresence>
+      {active && (
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          onClick={() => setActive(null)}
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.85)" }}>
+          <motion.div
+            initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            onClick={e => e.stopPropagation()}
+            className="relative max-w-3xl w-full bg-white rounded-2xl overflow-hidden shadow-2xl">
+            <button onClick={() => setActive(null)}
+              className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors">
+              <X size={18} />
+            </button>
+            <img src={active.src} alt={active.label} className="w-full max-h-[70vh] object-contain bg-black" />
+            <div className="p-5 space-y-2">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <p className="font-bold text-gray-800">{active.label}</p>
+                <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${CATEGORY_META[active.category].bg} ${CATEGORY_META[active.category].color}`}>
+                  {CATEGORY_META[active.category].label}
+                </span>
+              </div>
+              <p className="text-xs text-gray-500">{active.name}</p>
+              <p className="text-xs text-gray-400">Uploaded {active.uploadedAt}</p>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 function ReportsPage() {
   const [showForm, setShowForm] = useState(false);
   const [reportForm, setReportForm] = useState({ title: "", description: "", category: "Task Summary", deadline: "" });
@@ -986,6 +1235,8 @@ function ReportsPage() {
           </div>
         </div>
       )}
+
+      <SmartReviewSection />
 
       {extraReports.length > 0 && (
         <div className="space-y-3">
@@ -1096,11 +1347,33 @@ function ReportsPage() {
   );
 }
 
+interface AIChatItem {
+  id: number;
+  from: "user" | "bot";
+  text: string;
+}
+
 function CommunicationPage() {
+  const [tab, setTab] = useState<"team" | "ai">("team");
   const [comments, setComments] = useState<Comment[]>(MOCK_COMMENTS);
   const [selectedTask, setSelectedTask] = useState<number>(1);
   const [newMsg, setNewMsg] = useState("");
   const profile = getReporterProfile();
+
+  const [aiMessages, setAiMessages] = useState<AIChatItem[]>([
+    { id: 1, from: "bot", text: `Hi ${profile.name.split(" ")[0]}! I'm SAHARA AI. Ask me anything about your tasks, proofs, or volunteers.` },
+  ]);
+  const [aiInput, setAiInput] = useState("");
+  const [aiSending, setAiSending] = useState(false);
+  const aiScrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (tab === "ai") {
+      requestAnimationFrame(() => {
+        aiScrollRef.current?.scrollTo({ top: aiScrollRef.current.scrollHeight, behavior: "smooth" });
+      });
+    }
+  }, [tab, aiMessages, aiSending]);
 
   const taskComments = comments.filter(c => c.taskId === selectedTask);
 
@@ -1117,12 +1390,107 @@ function CommunicationPage() {
     setNewMsg("");
   }
 
+  async function sendAIMessage(raw: string) {
+    const text = raw.trim();
+    if (!text || aiSending) return;
+    const userMsg: AIChatItem = { id: Date.now(), from: "user", text };
+    setAiMessages(m => [...m, userMsg]);
+    setAiInput("");
+    setAiSending(true);
+    const history: GeminiMsg[] = [...aiMessages, userMsg]
+      .slice(-10)
+      .map(m => ({ role: m.from === "user" ? "user" : "model", text: m.text }));
+    try {
+      const reply = await geminiChat({
+        messages: history,
+        role: "reporter",
+        username: profile.name.split(" ")[0],
+      });
+      setAiMessages(m => [...m, { id: Date.now() + 1, from: "bot", text: reply || "I'm here — could you rephrase that?" }]);
+    } catch {
+      setAiMessages(m => [...m, { id: Date.now() + 1, from: "bot", text: "I couldn't reach the AI service just now. Please try again." }]);
+    } finally {
+      setAiSending(false);
+    }
+  }
+
   return (
     <div className="space-y-5">
       <div>
         <h2 className="text-xl font-bold text-gray-900 mb-1">Communication Panel</h2>
-        <p className="text-sm text-gray-400">Comment on tasks and coordinate with volunteers.</p>
+        <p className="text-sm text-gray-400">Coordinate with volunteers or chat with the AI assistant.</p>
       </div>
+      <div className="flex gap-2">
+        <button onClick={() => setTab("team")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${tab === "team" ? "text-white shadow-sm" : "bg-white border border-gray-200 text-gray-500 hover:border-orange-300"}`}
+          style={tab === "team" ? { background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` } : {}}>
+          <MessageSquare size={14} /> Team Chat
+        </button>
+        <button onClick={() => setTab("ai")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${tab === "ai" ? "text-white shadow-sm" : "bg-white border border-gray-200 text-gray-500 hover:border-orange-300"}`}
+          style={tab === "ai" ? { background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` } : {}}>
+          <Sparkles size={14} /> AI Assistant
+        </button>
+      </div>
+
+      {tab === "ai" ? (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}
+          className="bg-white rounded-2xl shadow-sm border border-orange-100 overflow-hidden">
+          <div className="px-4 py-3 text-white flex items-center gap-2"
+            style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }}>
+            <motion.div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center"
+              animate={{ rotate: [0, 360] }} transition={{ duration: 6, repeat: Infinity, ease: "linear" }}>
+              <Sparkles size={15} />
+            </motion.div>
+            <div>
+              <p className="font-bold text-sm">SAHARA AI Assistant</p>
+              <p className="text-xs opacity-90">Powered by Gemini · session history</p>
+            </div>
+          </div>
+          <div ref={aiScrollRef} className="p-4 space-y-3 max-h-96 overflow-y-auto bg-orange-50/30">
+            {aiMessages.map(m => (
+              <motion.div key={m.id}
+                initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
+                className={`flex ${m.from === "user" ? "justify-end" : "justify-start"}`}>
+                <div className={`max-w-[78%] px-3.5 py-2.5 rounded-2xl text-sm shadow-sm ${
+                  m.from === "user" ? "text-white rounded-br-md" : "bg-white text-gray-700 border border-orange-100 rounded-bl-md"
+                }`}
+                  style={m.from === "user" ? { background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` } : {}}>
+                  <p className="whitespace-pre-wrap">{m.text}</p>
+                </div>
+              </motion.div>
+            ))}
+            {aiSending && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
+                <div className="bg-white border border-orange-100 rounded-2xl rounded-bl-md px-3 py-2.5 shadow-sm flex items-center gap-1.5">
+                  {[0, 1, 2].map(i => (
+                    <motion.span key={i} className="w-1.5 h-1.5 rounded-full bg-orange-400"
+                      animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }}
+                      transition={{ duration: 0.9, repeat: Infinity, delay: i * 0.15 }} />
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </div>
+          <form onSubmit={e => { e.preventDefault(); sendAIMessage(aiInput); }}
+            className="p-3 border-t border-orange-100 flex gap-2">
+            <input value={aiInput} onChange={e => setAiInput(e.target.value)}
+              placeholder={aiSending ? "SAHARA AI is thinking…" : "Ask the AI anything…"}
+              disabled={aiSending}
+              className="flex-1 px-3 py-2 rounded-xl border border-orange-200 text-sm focus:outline-none focus:border-orange-400 disabled:bg-gray-50" />
+            <motion.button type="submit"
+              whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
+              disabled={!aiInput.trim() || aiSending}
+              className="w-10 h-10 rounded-xl text-white flex items-center justify-center disabled:opacity-50"
+              style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }}>
+              <Send size={15} />
+            </motion.button>
+          </form>
+        </motion.div>
+      ) : (
+      <>
       <div className="flex gap-2 flex-wrap">
         {MOCK_TASKS.slice(0, 5).map(t => (
           <button key={t.id} onClick={() => setSelectedTask(t.id)}
@@ -1171,6 +1539,8 @@ function CommunicationPage() {
           </button>
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 }
@@ -1351,8 +1721,9 @@ export default function ReporterDashboard() {
   );
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden font-[Poppins,sans-serif]">
-      <aside className="hidden lg:flex flex-col w-56 bg-white border-r border-gray-100 shrink-0 shadow-sm">
+    <div className="flex h-screen bg-gray-50 overflow-hidden font-[Poppins,sans-serif] relative">
+      <FloatingBackground />
+      <aside className="hidden lg:flex flex-col w-56 bg-white border-r border-gray-100 shrink-0 shadow-sm relative z-10">
         <Sidebar />
       </aside>
 
@@ -1365,7 +1736,7 @@ export default function ReporterDashboard() {
         </div>
       )}
 
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10">
         <header className="bg-white border-b border-gray-100 px-5 py-3 flex items-center justify-between gap-3 shadow-sm shrink-0">
           <div className="flex items-center gap-3">
             <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-gray-500 hover:text-orange-500 transition-colors">
