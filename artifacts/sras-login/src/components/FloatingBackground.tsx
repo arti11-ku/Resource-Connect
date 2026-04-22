@@ -30,7 +30,7 @@ const POSITIONS = [
   { top: "88%", right: "6%", delay: 1.1, dx: -16, dy: -14 },
 ];
 
-export default function FloatingBackground({ size = 70, opacity = 0.28 }: { size?: number; opacity?: number }) {
+export default function FloatingBackground({ size = 70, opacity = 0.12 }: { size?: number; opacity?: number }) {
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden>
       {POSITIONS.map((p, i) => (
@@ -48,7 +48,8 @@ export default function FloatingBackground({ size = 70, opacity = 0.28 }: { size
             borderRadius: "50%",
             objectFit: "cover",
             opacity,
-            boxShadow: "0 10px 28px rgba(255,122,0,0.25)",
+            filter: "blur(0.5px)",
+            boxShadow: "0 6px 18px rgba(255,122,0,0.12)",
           }}
           animate={{
             x: [0, p.dx, 0, -p.dx, 0],
