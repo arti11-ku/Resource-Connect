@@ -299,13 +299,24 @@ function StatCard({ icon: Icon, label, value, sub, color }: { icon: React.Elemen
 
 function FloatingBackground() {
   const positions = [
-    { top: "6%", left: "4%", size: 70, delay: 0 },
-    { top: "18%", right: "6%", size: 56, delay: 0.6 },
-    { top: "48%", left: "2%", size: 64, delay: 1.2 },
-    { top: "62%", right: "3%", size: 78, delay: 0.3 },
-    { top: "82%", left: "8%", size: 52, delay: 0.9 },
-    { top: "30%", right: "20%", size: 48, delay: 1.5 },
-    { top: "75%", right: "18%", size: 60, delay: 0.4 },
+    { top: "4%", left: "3%", size: 70, delay: 0, dx: 18, dy: -14 },
+    { top: "10%", left: "28%", size: 64, delay: 0.4, dx: -16, dy: 18 },
+    { top: "6%", left: "55%", size: 70, delay: 0.8, dx: 20, dy: 16 },
+    { top: "12%", right: "5%", size: 70, delay: 0.2, dx: -22, dy: 14 },
+    { top: "26%", left: "12%", size: 70, delay: 1.1, dx: 14, dy: 20 },
+    { top: "30%", left: "42%", size: 70, delay: 0.5, dx: -18, dy: -16 },
+    { top: "24%", right: "18%", size: 70, delay: 1.4, dx: 16, dy: 18 },
+    { top: "44%", left: "4%", size: 70, delay: 0.7, dx: 20, dy: -18 },
+    { top: "48%", left: "32%", size: 70, delay: 1.2, dx: -14, dy: 16 },
+    { top: "46%", left: "62%", size: 70, delay: 0.3, dx: 18, dy: 18 },
+    { top: "50%", right: "4%", size: 70, delay: 1.6, dx: -16, dy: -14 },
+    { top: "64%", left: "18%", size: 70, delay: 0.9, dx: 14, dy: 16 },
+    { top: "68%", left: "48%", size: 70, delay: 1.3, dx: -18, dy: 14 },
+    { top: "66%", right: "10%", size: 70, delay: 0.6, dx: 20, dy: -16 },
+    { top: "84%", left: "6%", size: 70, delay: 1.0, dx: 16, dy: -18 },
+    { top: "86%", left: "36%", size: 70, delay: 1.5, dx: -20, dy: 14 },
+    { top: "82%", left: "66%", size: 70, delay: 0.5, dx: 18, dy: 18 },
+    { top: "88%", right: "6%", size: 70, delay: 1.1, dx: -16, dy: -14 },
   ];
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden>
@@ -323,12 +334,15 @@ function FloatingBackground() {
             height: p.size,
             borderRadius: "50%",
             objectFit: "cover",
-            opacity: 0.10,
-            filter: "blur(0.5px)",
-            boxShadow: "0 8px 24px rgba(255,122,0,0.15)",
+            opacity: 0.28,
+            boxShadow: "0 10px 28px rgba(255,122,0,0.25)",
           }}
-          animate={{ y: [0, -12, 0, 10, 0], rotate: [0, 3, 0, -3, 0] }}
-          transition={{ duration: 8 + i, repeat: Infinity, ease: "easeInOut", delay: p.delay }}
+          animate={{
+            x: [0, p.dx, 0, -p.dx, 0],
+            y: [0, p.dy, 0, -p.dy, 0],
+            rotate: [0, 5, 0, -5, 0],
+          }}
+          transition={{ duration: 10 + (i % 6), repeat: Infinity, ease: "easeInOut", delay: p.delay }}
         />
       ))}
     </div>
