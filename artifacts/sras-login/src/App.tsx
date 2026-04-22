@@ -1,4 +1,4 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -30,17 +30,25 @@ function Router() {
   );
 }
 
+function AppShell() {
+  const [location] = useLocation();
+  const hideGlobalFooter = location === "/landing";
+  return (
+    <div className="min-h-screen flex flex-col">
+      <div className="flex-1 flex flex-col">
+        <Router />
+      </div>
+      {!hideGlobalFooter && <Footer />}
+    </div>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <div className="min-h-screen flex flex-col">
-            <div className="flex-1 flex flex-col">
-              <Router />
-            </div>
-            <Footer />
-          </div>
+          <AppShell />
         </WouterRouter>
         <Toaster />
       </TooltipProvider>
