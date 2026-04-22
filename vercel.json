@@ -1,8 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "npm install -g pnpm@10 && pnpm install --no-frozen-lockfile",
-  "buildCommand": "pnpm --filter @workspace/sras-login build",
-  "outputDirectory": "artifacts/sras-login/dist/public",
+  "installCommand": "npm install --prefix artifacts/sras-login",
+  "buildCommand": "npm run build --prefix artifacts/sras-login",
+  "outputDirectory": "artifacts/sras-login/dist",
   "framework": null,
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
