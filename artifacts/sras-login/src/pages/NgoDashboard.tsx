@@ -9,11 +9,12 @@ import {
   LayoutDashboard, Building2, ClipboardList, Users, ShieldCheck,
   Package, LogOut, Bell, Menu, X, Plus, Pencil, Save, Trash2,
   CheckCircle2, XCircle, Clock, Eye, Upload, Search, ChevronDown,
-  FileText, User, AlertCircle, Sparkles, Zap
+  FileText, User, AlertCircle, Sparkles, Zap, Image as ImageIcon,
+  TrendingUp, Activity, Target, MapPin
 } from "lucide-react";
 import {
-  BarChart, Bar, PieChart, Pie, Cell,
-  XAxis, YAxis, Tooltip, ResponsiveContainer, Legend
+  BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area,
+  XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, CartesianGrid
 } from "recharts";
 import saharaLogo from "@assets/ChatGPT_Image_Apr_19,_2026,_08_38_53_PM_1776611355262.png";
 import AIChatbot from "../components/AIChatbot";
@@ -21,6 +22,7 @@ import ImageMarquee from "../components/ImageMarquee";
 import FloatingBackground from "../components/FloatingBackground";
 import { dashboardGalleryImages } from "../lib/dashboardGallery";
 import { allocateTasks, predictPriority, verifyProof, type AIAllocation } from "../lib/ai";
+import { loadReviewImages, subscribeToReviewImages, type ReviewImage, type ReviewCategory } from "../lib/smartReviewStore";
 
 const ORANGE = "#FF7A00";
 const ORANGE_LIGHT = "#FF9A40";
@@ -99,6 +101,7 @@ interface Proof {
   status: ProofStatus;
   comment: string;
   emoji: string;
+  category: ReviewCategory;
 }
 
 interface Resource {
@@ -157,6 +160,22 @@ function Avatar({ name, size = "md" }: { name: string; size?: "sm" | "md" | "lg"
   );
 }
 
+function ScoreBar({ label, value, color, suffix }: { label: string; value: number; color: string; suffix?: string }) {
+  const pct = Math.max(0, Math.min(100, Math.round(value)));
+  return (
+    <div>
+      <div className="flex items-center justify-between text-[10px] text-gray-500 mb-0.5">
+        <span>{label}</span>
+        <span className="font-semibold text-gray-700">{suffix ?? `${pct}%`}</span>
+      </div>
+      <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
+        <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.6, ease: "easeOut" }}
+          className="h-full rounded-full" style={{ background: color }} />
+      </div>
+    </div>
+  );
+}
+
 function StatCard({ icon: Icon, label, value, sub, color, onClick }: {
   icon: React.ElementType; label: string; value: number | string; sub?: string; color: string; onClick?: () => void;
 }) {
@@ -195,9 +214,10 @@ const INIT_TASKS: Task[] = [
 ];
 
 const INIT_PROOFS: Proof[] = [
-  { id: 1, taskId: 4, taskTitle: "Blood Donation Camp", volunteer: "Deepika Nair", fileName: "donation_proof.jpg", fileType: "image", uploadedAt: "May 5 · 4:30 PM", status: "pending", comment: "", emoji: "🩸" },
-  { id: 2, taskId: 1, taskTitle: "Food Distribution Drive", volunteer: "Priya Sharma", fileName: "distribution_photo.jpg", fileType: "image", uploadedAt: "Apr 23 · 2:00 PM", status: "approved", comment: "Well documented, great work!", emoji: "🍱" },
-  { id: 3, taskId: 2, taskTitle: "Free Medical Camp", volunteer: "Aarav Patel", fileName: "camp_report.pdf", fileType: "document", uploadedAt: "Apr 20 · 11:00 AM", status: "rejected", comment: "Report is incomplete, please resubmit.", emoji: "🏥" },
+  { id: 1, taskId: 4, taskTitle: "Blood Donation Camp", volunteer: "Deepika Nair", fileName: "donation_proof.jpg", fileType: "image", uploadedAt: "May 5 · 4:30 PM", status: "pending", comment: "", emoji: "🩸", category: "blood" },
+  { id: 2, taskId: 1, taskTitle: "Food Distribution Drive", volunteer: "Priya Sharma", fileName: "distribution_photo.jpg", fileType: "image", uploadedAt: "Apr 23 · 2:00 PM", status: "approved", comment: "Well documented, great work!", emoji: "🍱", category: "food" },
+  { id: 3, taskId: 2, taskTitle: "Free Medical Camp", volunteer: "Aarav Patel", fileName: "camp_report.pdf", fileType: "document", uploadedAt: "Apr 20 · 11:00 AM", status: "rejected", comment: "Report is incomplete, please resubmit.", emoji: "🏥", category: "other" },
+  { id: 4, taskId: 5, taskTitle: "Tree Plantation Drive", volunteer: "Rohan Mehta", fileName: "saplings.jpg", fileType: "image", uploadedAt: "May 8 · 10:15 AM", status: "pending", comment: "", emoji: "🌳", category: "tree" },
 ];
 
 const INIT_RESOURCES: Resource[] = [
@@ -892,6 +912,29 @@ function TasksPage({ tasks, setTasks, volunteers }: {
     setTasks(prev => prev.filter(t => t.id !== id));
   }
 
+  // Chart data derived from current tasks
+  const completedCount = tasks.filter(t => t.status === "completed").length;
+  const pendingCount = tasks.filter(t => t.status !== "completed").length;
+  const statusBarData = [
+    { name: "Completed", value: completedCount, fill: "#22c55e" },
+    { name: "In Progress", value: tasks.filter(t => t.status === "in-progress").length, fill: ORANGE },
+    { name: "Assigned", value: tasks.filter(t => t.status === "assigned").length, fill: "#3b82f6" },
+  ];
+  const priorityPieData = (["high", "medium", "low"] as const).map(p => ({
+    name: p[0].toUpperCase() + p.slice(1),
+    value: tasks.filter(t => t.priority === p).length,
+    color: p === "high" ? "#ef4444" : p === "medium" ? ORANGE : "#22c55e",
+  })).filter(d => d.value > 0);
+  const categoryAreaData = [
+    { name: "Mon", food: 3, blood: 2, trees: 1 },
+    { name: "Tue", food: 4, blood: 3, trees: 2 },
+    { name: "Wed", food: 2, blood: 4, trees: 3 },
+    { name: "Thu", food: 5, blood: 2, trees: 4 },
+    { name: "Fri", food: 4, blood: 5, trees: 2 },
+    { name: "Sat", food: 6, blood: 3, trees: 5 },
+    { name: "Sun", food: 3, blood: 4, trees: 4 },
+  ];
+
   return (
     <MountFade className="space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-3">
@@ -914,38 +957,165 @@ function TasksPage({ tasks, setTasks, volunteers }: {
         </div>
       </div>
 
+      {/* ─── Data Visualization Section ─── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <FadeUp>
+          <HoverCard className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50 h-full">
+            <div className="flex items-center gap-2 mb-3">
+              <Activity size={16} className="text-orange-500" />
+              <h3 className="font-bold text-gray-800 text-sm">Tasks by Status</h3>
+            </div>
+            <ResponsiveContainer width="100%" height={170}>
+              <BarChart data={statusBarData} barSize={28}>
+                <defs>
+                  <linearGradient id="barGreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#34d399" /><stop offset="100%" stopColor="#16a34a" /></linearGradient>
+                  <linearGradient id="barOrange" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={ORANGE_LIGHT} /><stop offset="100%" stopColor={ORANGE} /></linearGradient>
+                  <linearGradient id="barBlue" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#60a5fa" /><stop offset="100%" stopColor="#2563eb" /></linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={chartTooltipStyle} cursor={chartTooltipCursor} />
+                <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                  {statusBarData.map((entry, i) => (
+                    <Cell key={i} fill={i === 0 ? "url(#barGreen)" : i === 1 ? "url(#barOrange)" : "url(#barBlue)"} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </HoverCard>
+        </FadeUp>
+
+        <FadeUp delay={0.05}>
+          <HoverCard className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50 h-full">
+            <div className="flex items-center gap-2 mb-3">
+              <Target size={16} className="text-orange-500" />
+              <h3 className="font-bold text-gray-800 text-sm">Priority Distribution</h3>
+            </div>
+            <div className="flex items-center gap-3" style={{ minHeight: 170 }}>
+              <div style={{ transform: "perspective(360px) rotateX(28deg)", transformOrigin: "center bottom" }}>
+                <PieChart width={160} height={140}>
+                  <defs>
+                    {priorityPieData.map((s, i) => (
+                      <linearGradient id={`pieGrad${i}`} key={i} x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor={s.color} stopOpacity={0.95} />
+                        <stop offset="100%" stopColor={s.color} stopOpacity={0.6} />
+                      </linearGradient>
+                    ))}
+                  </defs>
+                  <Pie data={priorityPieData} cx="50%" cy="55%" innerRadius={36} outerRadius={62} dataKey="value" paddingAngle={4}>
+                    {priorityPieData.map((_, i) => <Cell key={i} fill={`url(#pieGrad${i})`} />)}
+                  </Pie>
+                  <Tooltip contentStyle={chartTooltipStyle} />
+                </PieChart>
+              </div>
+              <div className="flex-1 space-y-2">
+                {priorityPieData.map(s => (
+                  <div key={s.name} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ background: s.color }} />
+                      <span className="text-xs text-gray-600">{s.name}</span>
+                    </div>
+                    <span className="text-xs font-bold text-gray-800">{s.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </HoverCard>
+        </FadeUp>
+
+        <FadeUp delay={0.1}>
+          <HoverCard className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50 h-full">
+            <div className="flex items-center gap-2 mb-3">
+              <TrendingUp size={16} className="text-orange-500" />
+              <h3 className="font-bold text-gray-800 text-sm">Category Trend (this week)</h3>
+            </div>
+            <ResponsiveContainer width="100%" height={170}>
+              <AreaChart data={categoryAreaData}>
+                <defs>
+                  <linearGradient id="areaFood" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={ORANGE} stopOpacity={0.5} /><stop offset="100%" stopColor={ORANGE} stopOpacity={0} /></linearGradient>
+                  <linearGradient id="areaBlood" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#ef4444" stopOpacity={0.5} /><stop offset="100%" stopColor="#ef4444" stopOpacity={0} /></linearGradient>
+                  <linearGradient id="areaTrees" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#22c55e" stopOpacity={0.5} /><stop offset="100%" stopColor="#22c55e" stopOpacity={0} /></linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={chartTooltipStyle} cursor={chartTooltipCursor} />
+                <Area type="monotone" dataKey="food" stroke={ORANGE} fill="url(#areaFood)" strokeWidth={2} />
+                <Area type="monotone" dataKey="blood" stroke="#ef4444" fill="url(#areaBlood)" strokeWidth={2} />
+                <Area type="monotone" dataKey="trees" stroke="#22c55e" fill="url(#areaTrees)" strokeWidth={2} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </HoverCard>
+        </FadeUp>
+      </div>
+
       <AnimatePresence>
         {aiAllocations && (
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-            className="bg-white rounded-2xl p-5 shadow-sm border border-orange-200">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white"
-                  style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }}>
-                  <Sparkles size={15} />
-                </span>
-                <h3 className="font-bold text-gray-800">AI Allocation Result</h3>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-700 uppercase tracking-wide">
-                  {aiAllocations.filter(a => a.volunteerName).length} of {aiAllocations.length} matched
-                </span>
+            className="bg-white rounded-2xl p-5 shadow-md border-2 border-orange-200 relative overflow-hidden">
+            <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ background: `radial-gradient(circle at top right, ${ORANGE}, transparent 60%)` }} />
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-md"
+                    style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }}>
+                    <Sparkles size={16} />
+                  </span>
+                  <div>
+                    <h3 className="font-bold text-gray-800">AI Smart Allocation</h3>
+                    <p className="text-[11px] text-gray-500">Best matches based on skills, location & availability</p>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-700 uppercase tracking-wide ml-2">
+                    {aiAllocations.filter(a => a.volunteerName).length}/{aiAllocations.length} matched
+                  </span>
+                </div>
+                <button onClick={() => setAiAllocations(null)} className="text-gray-400 hover:text-gray-600 p-1"><X size={16} /></button>
               </div>
-              <button onClick={() => setAiAllocations(null)} className="text-gray-400 hover:text-gray-600 p-1"><X size={16} /></button>
+              {aiAllocations.length === 0 ? (
+                <p className="text-xs text-gray-400">All tasks already have an assignee — nothing to allocate.</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {aiAllocations.map((a, idx) => (
+                    <motion.div
+                      key={String(a.taskId)}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      className={`p-4 rounded-xl border ${a.volunteerName ? "bg-gradient-to-br from-orange-50 to-white border-orange-200" : "bg-gray-50 border-gray-200"}`}>
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <Zap size={14} className="text-orange-500 shrink-0" />
+                          <p className="font-bold text-gray-800 text-sm truncate">{a.taskTitle}</p>
+                        </div>
+                        {a.volunteerName && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500 text-white shrink-0">
+                            {a.score}/100
+                          </span>
+                        )}
+                      </div>
+                      {a.volunteerName ? (
+                        <>
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-7 h-7 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-xs font-bold">
+                              {a.volunteerName.split(" ").map(w => w[0]).join("").slice(0, 2)}
+                            </div>
+                            <p className="text-xs font-semibold text-gray-700">{a.volunteerName}</p>
+                          </div>
+                          <div className="space-y-1.5">
+                            <ScoreBar label="Skill match" value={a.skillPct} color="#22c55e" />
+                            <ScoreBar label="Distance" value={Math.max(0, 100 - a.distanceKm * 3)} color="#3b82f6" suffix={`${a.distanceKm}km`} />
+                            <ScoreBar label="Rating" value={(a.rating / 5) * 100} color={ORANGE} suffix={`${a.rating.toFixed(1)}★`} />
+                          </div>
+                        </>
+                      ) : (
+                        <p className="text-xs text-gray-500 italic">{a.reason}</p>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </div>
-            {aiAllocations.length === 0 ? (
-              <p className="text-xs text-gray-400">All tasks already have an assignee — nothing to allocate.</p>
-            ) : (
-              <ul className="space-y-2">
-                {aiAllocations.map(a => (
-                  <li key={String(a.taskId)} className="flex items-start gap-3 p-3 rounded-xl bg-orange-50/50 border border-orange-100">
-                    <Zap size={14} className="text-orange-500 mt-0.5 shrink-0" />
-                    <div className="text-xs">
-                      <p className="font-bold text-gray-800">{a.taskTitle}</p>
-                      <p className="text-gray-600 mt-0.5">{a.reason}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -1084,6 +1254,22 @@ function ProofsPage({ proofs, setProofs }: { proofs: Proof[]; setProofs: React.D
   const [previewProof, setPreviewProof] = useState<Proof | null>(null);
   const [comment, setComment] = useState("");
   const [filterStatus, setFilterStatus] = useState<ProofStatus | "all">("all");
+  const [reviewImages, setReviewImages] = useState<ReviewImage[]>(() => loadReviewImages());
+
+  useEffect(() => {
+    const unsubscribe = subscribeToReviewImages(() => setReviewImages(loadReviewImages()));
+    return unsubscribe;
+  }, []);
+
+  // Map proof → matching review image (by category, then any image)
+  function imageForProof(p: Proof): ReviewImage | null {
+    const matches = reviewImages.filter(i => i.category === p.category);
+    if (matches.length > 0) {
+      // Pick deterministic image based on proof.id so same proof always shows same image
+      return matches[p.id % matches.length];
+    }
+    return null;
+  }
 
   function handleDecision(id: number, decision: "approved" | "rejected", commentText: string) {
     setProofs(prev => prev.map(p => p.id === id ? { ...p, status: decision, comment: commentText } : p));
@@ -1099,12 +1285,30 @@ function ProofsPage({ proofs, setProofs }: { proofs: Proof[]; setProofs: React.D
     rejected: "bg-red-100 text-red-700",
   };
 
+  const categoryGradient: Record<ReviewCategory, string> = {
+    blood: "from-red-100 to-pink-50",
+    tree: "from-green-100 to-emerald-50",
+    food: "from-amber-100 to-orange-50",
+    other: "from-slate-100 to-gray-50",
+  };
+
   return (
     <MountFade className="space-y-5">
       <FadeIn>
         <h2 className="text-xl font-bold text-gray-900 mb-1">Proof Verification</h2>
-        <p className="text-sm text-gray-400">Review and approve or reject volunteer proof submissions.</p>
+        <p className="text-sm text-gray-400">
+          Review and approve or reject volunteer proof submissions. Images sourced from the Reporter Smart Review gallery.
+        </p>
       </FadeIn>
+
+      {reviewImages.length === 0 && (
+        <FadeUp>
+          <div className="rounded-2xl p-4 border border-orange-200 bg-orange-50/60 text-xs text-orange-700 flex items-start gap-2">
+            <AlertCircle size={14} className="mt-0.5 shrink-0" />
+            <span>No proof images uploaded yet. Ask a Reporter to upload images via <strong>Reports → Smart Review Gallery</strong> — they'll appear here automatically, categorized by activity type.</span>
+          </div>
+        </FadeUp>
+      )}
 
       <div className="flex gap-2 flex-wrap">
         {(["all", "pending", "approved", "rejected"] as const).map(s => (
@@ -1117,96 +1321,136 @@ function ProofsPage({ proofs, setProofs }: { proofs: Proof[]; setProofs: React.D
         ))}
       </div>
 
-      <StaggerList className="space-y-3">
-        {filtered.map(p => (
-          <StaggerItem key={p.id}>
-            <HoverCard className="bg-white rounded-2xl p-4 shadow-sm border border-orange-50">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-orange-50 shrink-0 border border-orange-100">{p.emoji}</div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-gray-800 text-sm">{p.taskTitle}</p>
-                  <p className="text-xs text-gray-400">👤 {p.volunteer} · {p.uploadedAt}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">📎 {p.fileName}</p>
+      <StaggerList className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filtered.map(p => {
+          const img = imageForProof(p);
+          const ai = verifyProof(p.fileName, p.fileType);
+          const aiCls = ai.status === "verified" ? "bg-green-100 text-green-700"
+            : ai.status === "suspicious" ? "bg-red-100 text-red-700"
+            : "bg-yellow-100 text-yellow-700";
+          const aiLabel = ai.status === "verified" ? "AI: Verified" : ai.status === "suspicious" ? "AI: Suspicious" : "Pending AI Check";
+
+          return (
+            <StaggerItem key={p.id}>
+              <motion.div
+                whileHover={{ y: -4, boxShadow: "0 12px 30px rgba(255,122,0,0.15)" }}
+                transition={{ duration: 0.18 }}
+                className="bg-white rounded-2xl shadow-sm border border-orange-50 overflow-hidden cursor-pointer"
+                onClick={() => { setPreviewProof(p); setComment(p.comment); }}>
+                <div className={`relative h-44 bg-gradient-to-br ${categoryGradient[p.category]} flex items-center justify-center overflow-hidden`}>
+                  {img ? (
+                    <img src={img.src} alt={p.taskTitle} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-center px-3">
+                      <span className="text-5xl mb-1">{p.emoji}</span>
+                      <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">{p.fileType}</span>
+                    </div>
+                  )}
+                  <span className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-bold capitalize shadow-sm ${statusColor[p.status]}`}>{p.status}</span>
+                  <span className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm bg-white/90 text-gray-700`}>{p.category}</span>
+                  <button className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-white/90 text-orange-600 flex items-center justify-center shadow-sm">
+                    <Eye size={14} />
+                  </button>
+                </div>
+
+                <div className="p-4 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-bold text-gray-800 text-sm leading-tight">{p.taskTitle}</p>
+                  </div>
+                  <p className="text-xs text-gray-500">👤 {p.volunteer}</p>
+                  <p className="text-xs text-gray-400">{p.uploadedAt}</p>
+                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${aiCls}`}>
+                    <Sparkles size={9} /> {aiLabel} · {ai.confidence}%
+                  </span>
                   {p.comment && (
-                    <p className="text-xs mt-1 italic text-gray-500">💬 "{p.comment}"</p>
+                    <p className="text-xs italic text-gray-500 line-clamp-2">💬 "{p.comment}"</p>
+                  )}
+
+                  {p.status === "pending" && (
+                    <div className="flex gap-2 pt-2">
+                      <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+                        onClick={(e) => { e.stopPropagation(); handleDecision(p.id, "approved", p.comment); }}
+                        className="flex-1 py-1.5 rounded-lg text-white text-xs font-bold flex items-center justify-center gap-1 bg-green-500 hover:bg-green-600">
+                        <CheckCircle2 size={11} /> Approve
+                      </motion.button>
+                      <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+                        onClick={(e) => { e.stopPropagation(); handleDecision(p.id, "rejected", p.comment); }}
+                        className="flex-1 py-1.5 rounded-lg text-white text-xs font-bold flex items-center justify-center gap-1 bg-red-500 hover:bg-red-600">
+                        <XCircle size={11} /> Reject
+                      </motion.button>
+                    </div>
                   )}
                 </div>
-                <div className="flex flex-col items-end gap-2 shrink-0">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold capitalize ${statusColor[p.status]}`}>{p.status}</span>
-                  {(() => {
-                    const ai = verifyProof(p.fileName, p.fileType);
-                    const cls = ai.status === "verified" ? "bg-green-100 text-green-700"
-                      : ai.status === "suspicious" ? "bg-red-100 text-red-700"
-                      : "bg-yellow-100 text-yellow-700";
-                    const label = ai.status === "verified" ? "AI: Verified" : ai.status === "suspicious" ? "AI: Suspicious" : "Pending AI Check";
-                    return (
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold inline-flex items-center gap-1 ${cls}`}>
-                        <Sparkles size={9} /> {label}
-                      </span>
-                    );
-                  })()}
-                  <motion.button whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
-                    onClick={() => { setPreviewProof(p); setComment(p.comment); }}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
-                    <Eye size={11} /> View
-                  </motion.button>
-                </div>
-              </div>
-            </HoverCard>
-          </StaggerItem>
-        ))}
+              </motion.div>
+            </StaggerItem>
+          );
+        })}
       </StaggerList>
 
       <AnimatePresence>
-        {previewProof && (
+        {previewProof && (() => {
+          const img = imageForProof(previewProof);
+          return (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            style={{ background: "rgba(0,0,0,0.5)" }}
+            style={{ background: "rgba(0,0,0,0.7)" }}
             onClick={() => setPreviewProof(null)}>
             <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
               onClick={e => e.stopPropagation()}
-              className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-gray-800">Proof Preview</h3>
-                <button onClick={() => setPreviewProof(null)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+              className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden">
+              <div className={`relative bg-gradient-to-br ${categoryGradient[previewProof.category]} flex items-center justify-center`} style={{ minHeight: 320 }}>
+                {img ? (
+                  <img src={img.src} alt={previewProof.taskTitle} className="w-full max-h-[60vh] object-contain" />
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-16">
+                    <span className="text-7xl mb-2">{previewProof.emoji}</span>
+                    <p className="text-sm text-gray-500 font-medium">{previewProof.fileName}</p>
+                  </div>
+                )}
+                <button onClick={() => setPreviewProof(null)}
+                  className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors">
+                  <X size={18} />
+                </button>
               </div>
-              <div className="w-full h-40 rounded-xl bg-orange-50 border border-orange-100 flex flex-col items-center justify-center mb-4">
-                <span className="text-5xl mb-2">{previewProof.emoji}</span>
-                <p className="text-sm text-gray-500 font-medium">{previewProof.fileName}</p>
-                <p className="text-xs text-gray-400">{previewProof.fileType === "image" ? "Image" : "Document"}</p>
-              </div>
-              <div className="space-y-1 mb-4">
-                <p className="text-sm font-semibold text-gray-800">{previewProof.taskTitle}</p>
-                <p className="text-xs text-gray-400">By {previewProof.volunteer} · {previewProof.uploadedAt}</p>
-              </div>
-              <div className="mb-4">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">Comment</label>
-                <textarea value={comment} onChange={e => setComment(e.target.value)}
-                  placeholder="Add a review comment..."
-                  rows={2}
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-orange-400 resize-none" />
-              </div>
-              {previewProof.status === "pending" ? (
-                <div className="flex gap-3">
-                  <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                    onClick={() => handleDecision(previewProof.id, "approved", comment)}
-                    className="flex-1 py-2.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 transition-colors">
-                    <CheckCircle2 size={15} /> Approve
-                  </motion.button>
-                  <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                    onClick={() => handleDecision(previewProof.id, "rejected", comment)}
-                    className="flex-1 py-2.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 transition-colors">
-                    <XCircle size={15} /> Reject
-                  </motion.button>
+              <div className="p-6 space-y-3">
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <div>
+                    <h3 className="font-bold text-gray-800 text-lg">{previewProof.taskTitle}</h3>
+                    <p className="text-xs text-gray-400 mt-0.5">By {previewProof.volunteer} · {previewProof.uploadedAt}</p>
+                  </div>
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-bold capitalize ${statusColor[previewProof.status]}`}>{previewProof.status}</span>
                 </div>
-              ) : (
-                <div className={`text-center py-2.5 rounded-xl text-sm font-bold ${previewProof.status === "approved" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                  {previewProof.status === "approved" ? "✅ Approved" : "❌ Rejected"}
+                <div>
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 block">Reviewer Comment</label>
+                  <textarea value={comment} onChange={e => setComment(e.target.value)}
+                    placeholder="Add a review comment..."
+                    rows={2}
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-orange-400 resize-none" />
                 </div>
-              )}
+                {previewProof.status === "pending" ? (
+                  <div className="flex gap-3 pt-1">
+                    <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                      onClick={() => handleDecision(previewProof.id, "approved", comment)}
+                      className="flex-1 py-2.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 transition-colors">
+                      <CheckCircle2 size={15} /> Approve
+                    </motion.button>
+                    <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                      onClick={() => handleDecision(previewProof.id, "rejected", comment)}
+                      className="flex-1 py-2.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 transition-colors">
+                      <XCircle size={15} /> Reject
+                    </motion.button>
+                  </div>
+                ) : (
+                  <div className={`text-center py-2.5 rounded-xl text-sm font-bold ${previewProof.status === "approved" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                    {previewProof.status === "approved" ? "✅ Approved" : "❌ Rejected"}
+                  </div>
+                )}
+              </div>
             </motion.div>
           </motion.div>
-        )}
+          );
+        })()}
       </AnimatePresence>
     </MountFade>
   );

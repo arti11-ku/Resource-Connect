@@ -18,6 +18,7 @@ import {
 } from "recharts";
 import saharaLogo from "@assets/ChatGPT_Image_Apr_19,_2026,_08_38_53_PM_1776611355262.png";
 import LocationPicker, { type LocationValue } from "../components/LocationPicker";
+import { loadReviewImages, saveReviewImages } from "../lib/smartReviewStore";
 import AIChatbot from "../components/AIChatbot";
 import EmptyState from "../components/EmptyState";
 import ImageMarquee from "../components/ImageMarquee";
@@ -981,8 +982,6 @@ interface ReportEntry {
   category: string;
 }
 
-type ReviewCategory = "blood" | "tree" | "food" | "other";
-
 interface ReviewImage {
   id: number;
   src: string;
@@ -1015,10 +1014,12 @@ const CATEGORY_META: Record<ReviewCategory, { label: string; color: string; bg: 
 
 function SmartReviewSection() {
   const { toast } = useToast();
-  const [images, setImages] = useState<ReviewImage[]>([]);
+  const [images, setImages] = useState<ReviewImage[]>(() => loadReviewImages() as ReviewImage[]);
   const [label, setLabel] = useState("");
   const [active, setActive] = useState<ReviewImage | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => { saveReviewImages(images); }, [images]);
 
   function handleFiles(files: FileList | null) {
     if (!files || !files.length) return;

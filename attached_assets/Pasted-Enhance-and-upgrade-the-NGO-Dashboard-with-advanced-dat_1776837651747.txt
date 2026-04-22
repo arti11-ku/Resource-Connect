@@ -1,0 +1,94 @@
+Enhance and upgrade the NGO Dashboard with advanced data visualization, improved AI allocation logic, and better proof verification UI.
+
+You are allowed to redesign sections, improve layout, and add animations for better user experience.
+
+---
+
+## 📊 TASK SECTION (DATA VISUALIZATION)
+
+* Add interactive graphs and charts to represent tasks and resource allocation:
+
+  * Use Bar Chart, Line Chart, and Pie Chart
+* Make charts visually rich and modern:
+
+  * Add 3D-like appearance (depth, gradients, shadows)
+  * Smooth animations when loading and updating data
+  * Hover effects showing detailed values
+* Suggested libraries:
+
+  * Recharts or Chart.js
+* Data to show:
+
+  * Tasks completed vs pending
+  * Resource allocation distribution
+  * Category-wise work (Food, Blood, Trees, etc.)
+
+---
+
+## 🤖 AI RESOURCE ALLOCATION (IMPROVE LOGIC)
+
+* Improve AI-based allocation system:
+
+  * Allocate resources based on:
+
+    * Priority of issue
+    * Location proximity
+    * Availability of volunteers/resources
+* Add smart suggestions:
+
+  * “Best NGO for this issue”
+  * “Recommended resources”
+* Show allocation results visually (cards or highlighted suggestions)
+* Make it dynamic and responsive (updates when new data comes)
+
+---
+
+## 🖼️ PROOF VERIFICATION (IMAGE INTEGRATION)
+
+* Add image display in proof verification section:
+
+  * Use images already uploaded in previous steps (review section uploads)
+* Each proof item should:
+
+  * Show thumbnail image
+  * On click → open full image in modal/lightbox
+* Add approve/reject buttons with visible status
+* Layout:
+
+  * Card-based UI with image + details + action buttons
+
+---
+
+## ✨ UI / ANIMATION ENHANCEMENTS
+
+* Add smooth animations:
+
+  * Charts animate on load
+  * Cards fade + slide in
+* Add hover effects:
+
+  * Cards lift slightly + shadow
+* Use gradient colors instead of plain UI
+* Add subtle floating background elements (optional)
+
+---
+
+## ⚙️ TECH REQUIREMENTS
+
+* Use React + Tailwind CSS
+* Use Framer Motion for animations
+* Use Recharts or Chart.js for graphs
+* Ensure responsiveness and smooth performance
+
+---
+
+## 🎯 GOAL
+
+Make NGO Dashboard:
+
+* Data-rich (graphs, insights)
+* Smart (better AI allocation)
+* Visual (images + animations)
+* Interactive (charts + hover + click actions)
+
+Do not keep it basic — make it modern, animated, and informative.
