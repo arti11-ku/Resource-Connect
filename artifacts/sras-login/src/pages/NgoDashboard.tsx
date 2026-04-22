@@ -10,8 +10,9 @@ import {
   Package, LogOut, Bell, Menu, X, Plus, Pencil, Save, Trash2,
   CheckCircle2, XCircle, Clock, Eye, Upload, Search, ChevronDown,
   FileText, User, AlertCircle, Sparkles, Zap, Image as ImageIcon,
-  TrendingUp, Activity, Target, MapPin
+  TrendingUp, Activity, Target, MapPin, Settings as SettingsIcon
 } from "lucide-react";
+import SettingsPage from "../components/SettingsPage";
 import {
   BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area,
   XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, CartesianGrid
@@ -28,7 +29,7 @@ const ORANGE = "#FF7A00";
 const ORANGE_LIGHT = "#FF9A40";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
-type Page = "overview" | "profile" | "register" | "volunteers" | "tasks" | "proofs" | "resources";
+type Page = "overview" | "profile" | "register" | "volunteers" | "tasks" | "proofs" | "resources" | "settings";
 type TaskStatus = "assigned" | "in-progress" | "completed";
 type ProofStatus = "pending" | "approved" | "rejected";
 type ResourceStatus = "available" | "allocated" | "depleted";
@@ -1609,6 +1610,7 @@ const NAV_ITEMS: { page: Page; icon: React.ElementType; label: string }[] = [
   { page: "tasks", icon: ClipboardList, label: "Tasks" },
   { page: "proofs", icon: ShieldCheck, label: "Proof Verification" },
   { page: "resources", icon: Package, label: "Resources" },
+  { page: "settings", icon: SettingsIcon, label: "Settings" },
 ];
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -1760,6 +1762,7 @@ export default function NgoDashboard() {
               {activePage === "volunteers" && <VolunteersPage volunteers={volunteers} setVolunteers={setVolunteers} tasks={tasks} />}
               {activePage === "tasks" && <TasksPage tasks={tasks} setTasks={setTasks} volunteers={volunteers} />}
               {activePage === "proofs" && <ProofsPage proofs={proofs} setProofs={setProofs} />}
+              {activePage === "settings" && <SettingsPage role="NGO" />}
               {activePage === "resources" && <ResourcesPage resources={resources} setResources={setResources} />}
             </motion.div>
           </AnimatePresence>

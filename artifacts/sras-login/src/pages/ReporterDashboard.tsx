@@ -8,8 +8,9 @@ import {
   MessageSquare, Send, Filter, Search, ChevronRight,
   FileText, TrendingUp, Users, Zap, RefreshCw, Circle,
   Upload, Plus, Pencil, Save, MapPin, Sparkles, Image as ImageIcon,
-  Heart, Trees, UtensilsCrossed
+  Heart, Trees, UtensilsCrossed, Settings as SettingsIcon
 } from "lucide-react";
+import SettingsPage from "../components/SettingsPage";
 import { useToast } from "../hooks/use-toast";
 import { geminiChat, type GeminiMsg } from "../lib/chatApi";
 import {
@@ -120,7 +121,7 @@ function Pie3DChart({ data }: { data: { name: string; value: number; color: stri
   );
 }
 
-type Page = "overview" | "tasks" | "proofs" | "issues" | "reports" | "communication" | "profile";
+type Page = "overview" | "tasks" | "proofs" | "issues" | "reports" | "communication" | "profile" | "settings";
 type TaskStatus = "available" | "accepted" | "in-progress" | "completed";
 type ProofStatus = "pending" | "approved" | "rejected";
 type IssueType = "delay" | "invalid-proof" | "incomplete-work" | "other";
@@ -1692,6 +1693,7 @@ const NAV_ITEMS: { page: Page; icon: React.ElementType; label: string }[] = [
   { page: "reports", icon: BarChart2, label: "Reports" },
   { page: "communication", icon: MessageSquare, label: "Communication" },
   { page: "profile", icon: User, label: "Profile" },
+  { page: "settings", icon: SettingsIcon, label: "Settings" },
 ];
 
 export default function ReporterDashboard() {
@@ -1815,6 +1817,7 @@ export default function ReporterDashboard() {
           {activePage === "issues" && <IssuesPage />}
           {activePage === "reports" && <ReportsPage />}
           {activePage === "communication" && <CommunicationPage />}
+          {activePage === "settings" && <SettingsPage role="Reporter" />}
           {activePage === "profile" && <ProfilePage />}
         </main>
       </div>

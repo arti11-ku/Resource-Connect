@@ -11,6 +11,7 @@ import NgoDashboard from "@/pages/NgoDashboard";
 import DonorDashboard from "@/pages/DonorDashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
 import Footer from "@/components/Footer";
+import { ThemeProvider } from "@/lib/theme";
 
 const queryClient = new QueryClient();
 
@@ -45,14 +46,16 @@ function AppShell() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <AppShell />
-        </WouterRouter>
-        <Toaster />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <AppShell />
+          </WouterRouter>
+          <Toaster />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 

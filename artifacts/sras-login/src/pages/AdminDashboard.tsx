@@ -9,8 +9,9 @@ import {
   ShieldCheck, AlertTriangle, BarChart2, User, LogOut, Bell,
   Menu, X, Search, Pencil, Trash2, CheckCircle2, XCircle,
   Eye, Save, Ban, RefreshCw, TrendingUp, Download, Send,
-  Plus, FileText, Flag, Sparkles, Zap
+  Plus, FileText, Flag, Sparkles, Zap, Settings as SettingsIcon
 } from "lucide-react";
+import SettingsPage from "../components/SettingsPage";
 import AIChatbot from "../components/AIChatbot";
 import EmptyState from "../components/EmptyState";
 import ImageMarquee from "../components/ImageMarquee";
@@ -27,7 +28,7 @@ const ORANGE = "#FF7A00";
 const ORANGE_LIGHT = "#FF9A40";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Page = "overview" | "ngos" | "users" | "resources" | "tasks" | "proofs" | "issues" | "reports" | "profile";
+type Page = "overview" | "ngos" | "users" | "resources" | "tasks" | "proofs" | "issues" | "reports" | "profile" | "settings";
 type NgoStatus = "pending" | "approved" | "rejected" | "blocked";
 type UserRole = "ngo" | "donor" | "volunteer";
 type UserStatus = "active" | "inactive";
@@ -1173,6 +1174,7 @@ const NAV_ITEMS: { page: Page; icon: React.ElementType; label: string }[] = [
   { page: "issues", icon: AlertTriangle, label: "Issues & Alerts" },
   { page: "reports", icon: BarChart2, label: "Reports" },
   { page: "profile", icon: User, label: "Profile" },
+  { page: "settings", icon: SettingsIcon, label: "Settings" },
 ];
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
@@ -1325,6 +1327,7 @@ export default function AdminDashboard() {
               {activePage === "issues" && <IssuesPage issues={issues} setIssues={setIssues} />}
               {activePage === "reports" && <ReportsPage ngos={ngos} users={users} tasks={tasks} resources={resources} />}
               {activePage === "profile" && <ProfilePage />}
+              {activePage === "settings" && <SettingsPage role="Admin" />}
             </motion.div>
           </AnimatePresence>
         </main>

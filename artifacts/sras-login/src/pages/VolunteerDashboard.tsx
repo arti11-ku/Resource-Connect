@@ -11,6 +11,7 @@ import {
   Heart, Leaf, BookOpen, Stethoscope, Upload, Pencil, Save, Plus
 } from "lucide-react";
 import saharaLogo from "@assets/ChatGPT_Image_Apr_19,_2026,_08_38_53_PM_1776611355262.png";
+import SettingsPage from "../components/SettingsPage";
 import gallery1 from "@assets/WhatsApp_Image_2026-04-21_at_11.06.47_PM_1776793392967.jpeg";
 import gallery2 from "@assets/WhatsApp_Image_2026-04-21_at_11.06.48_PM_1776793392968.jpeg";
 import gallery3 from "@assets/WhatsApp_Image_2026-04-21_at_11.06.49_PM_1776793392969.jpeg";
@@ -1133,49 +1134,6 @@ function ProfilePage({ profile, onSave }: { profile: VolunteerProfile; onSave: (
           <Save size={16} /> Save Changes
         </button>
       )}
-    </div>
-  );
-}
-
-function SettingsPage() {
-  const [notifs, setNotifs] = useState({ email: true, push: true, sms: false });
-  return (
-    <div className="max-w-2xl space-y-5">
-      <div className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50">
-        <p className="text-xs font-bold text-orange-500 uppercase tracking-widest mb-4">Notifications</p>
-        <div className="space-y-4">
-          {([["email", "Email Notifications", "Receive updates via email"], ["push", "Push Notifications", "Get app notifications"], ["sms", "SMS Alerts", "Receive SMS for urgent tasks"]] as const).map(([key, label, desc]) => (
-            <div key={key} className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-gray-800">{label}</p>
-                <p className="text-xs text-gray-400">{desc}</p>
-              </div>
-              <button onClick={() => setNotifs(n => ({ ...n, [key]: !n[key] }))}
-                className={`w-11 h-6 rounded-full relative transition-colors ${notifs[key] ? "bg-orange-500" : "bg-gray-200"}`}>
-                <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${notifs[key] ? "left-6" : "left-1"}`} />
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50">
-        <p className="text-xs font-bold text-orange-500 uppercase tracking-widest mb-4">Account</p>
-        <div className="space-y-2">
-          {["Change Password", "Language & Region", "Privacy Settings", "Delete Account"].map(item => (
-            <button key={item}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-colors ${item === "Delete Account" ? "text-red-600 hover:bg-red-50" : "text-gray-700 hover:bg-orange-50"}`}>
-              {item}<ChevronRight size={16} className="text-gray-400" />
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="bg-white rounded-2xl p-5 shadow-sm border border-orange-50">
-        <p className="text-xs font-bold text-orange-500 uppercase tracking-widest mb-2">About</p>
-        <div className="text-xs text-gray-400 space-y-1">
-          <p>SAHARA – Smart Resource Allocation System</p>
-          <p>Version 1.0.0</p>
-        </div>
-      </div>
     </div>
   );
 }
