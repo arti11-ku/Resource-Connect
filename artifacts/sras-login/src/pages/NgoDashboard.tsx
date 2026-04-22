@@ -18,6 +18,7 @@ import {
 import saharaLogo from "@assets/ChatGPT_Image_Apr_19,_2026,_08_38_53_PM_1776611355262.png";
 import AIChatbot from "../components/AIChatbot";
 import ImageMarquee from "../components/ImageMarquee";
+import FloatingBackground from "../components/FloatingBackground";
 import { dashboardGalleryImages } from "../lib/dashboardGallery";
 import { allocateTasks, predictPriority, verifyProof, type AIAllocation } from "../lib/ai";
 
@@ -1419,8 +1420,9 @@ export default function NgoDashboard() {
   );
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden font-[Poppins,sans-serif]">
-      <aside className="hidden lg:flex flex-col w-56 bg-white border-r border-gray-100 shrink-0 shadow-sm">
+    <div className="flex h-screen bg-gray-50 overflow-hidden font-[Poppins,sans-serif] relative">
+      <FloatingBackground />
+      <aside className="hidden lg:flex flex-col w-56 bg-white border-r border-gray-100 shrink-0 shadow-sm relative z-10">
         <Sidebar />
       </aside>
 

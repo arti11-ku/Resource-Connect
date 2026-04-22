@@ -21,6 +21,7 @@ import gallery7 from "@assets/WhatsApp_Image_2026-04-21_at_11.06.53_PM_177679339
 import AIChatbot from "../components/AIChatbot";
 import EmptyState from "../components/EmptyState";
 import ImageMarquee from "../components/ImageMarquee";
+import FloatingBackground from "../components/FloatingBackground";
 import { recommendTasks, verifyProof, type AIPriority } from "../lib/ai";
 
 const volunteerCarouselImages = [
@@ -1315,14 +1316,15 @@ export default function VolunteerDashboard() {
   );
 
   return (
-    <div className="h-screen overflow-hidden flex bg-orange-50/30">
+    <div className="h-screen overflow-hidden flex bg-orange-50/30 relative">
+      <FloatingBackground />
       {sidebarOpen && <div className="fixed inset-0 bg-black/30 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
       <aside className={`fixed top-0 left-0 h-full w-60 bg-white shadow-lg border-r border-orange-100 z-30 transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 lg:static lg:shadow-none`}>
         <SidebarContent />
       </aside>
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 relative z-10">
         <header className="bg-white border-b border-orange-100 px-5 py-3.5 flex items-center justify-between gap-3 sticky top-0 z-10 shadow-sm">
           <div className="flex items-center gap-3">
             <button onClick={() => setSidebarOpen(v => !v)} className="lg:hidden p-2 rounded-xl hover:bg-orange-50 text-gray-600 transition-colors">
