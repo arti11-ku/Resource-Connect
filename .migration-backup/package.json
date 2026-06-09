@@ -1,0 +1,10 @@
+{
+  "name": "sras",
+  "version": "0.0.0",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "build": "npm run build --prefix artifacts/sras-login",
+    "install:app": "npm install --prefix artifacts/sras-login"
+  }
+}
