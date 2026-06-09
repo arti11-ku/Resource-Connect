@@ -9,13 +9,14 @@ import {
   ShieldCheck, AlertTriangle, BarChart2, User, LogOut, Bell,
   Menu, X, Search, Pencil, Trash2, CheckCircle2, XCircle,
   Eye, Save, Ban, RefreshCw, TrendingUp, Download, Send,
-  Plus, FileText, Flag, Sparkles, Zap, Settings as SettingsIcon
+  Plus, FileText, Flag, Sparkles, Zap, Settings as SettingsIcon, MapPin
 } from "lucide-react";
 import SettingsPage from "../components/SettingsPage";
 import AIChatbot from "../components/AIChatbot";
 import EmptyState from "../components/EmptyState";
 import ImageMarquee from "../components/ImageMarquee";
 import FloatingBackground from "../components/FloatingBackground";
+import ResourceHeatmap from "../components/ResourceHeatmap";
 import { dashboardGalleryImages } from "../lib/dashboardGallery";
 import { allocateTasks, verifyProof, type AIAllocation, type AIPriority } from "../lib/ai";
 import {
@@ -28,7 +29,7 @@ const ORANGE = "#FF7A00";
 const ORANGE_LIGHT = "#FF9A40";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Page = "overview" | "ngos" | "users" | "resources" | "tasks" | "proofs" | "issues" | "reports" | "profile" | "settings";
+type Page = "overview" | "ngos" | "users" | "resources" | "tasks" | "proofs" | "issues" | "reports" | "profile" | "settings" | "resource-map";
 type NgoStatus = "pending" | "approved" | "rejected" | "blocked";
 type UserRole = "ngo" | "donor" | "volunteer";
 type UserStatus = "active" | "inactive";
@@ -1169,6 +1170,7 @@ const NAV_ITEMS: { page: Page; icon: React.ElementType; label: string }[] = [
   { page: "ngos", icon: Building2, label: "NGO Management" },
   { page: "users", icon: Users, label: "User Management" },
   { page: "resources", icon: Package, label: "Resources" },
+  { page: "resource-map", icon: MapPin, label: "Resource Map" },
   { page: "tasks", icon: ClipboardList, label: "Task Monitor" },
   { page: "proofs", icon: ShieldCheck, label: "Proof Verification" },
   { page: "issues", icon: AlertTriangle, label: "Issues & Alerts" },
@@ -1322,6 +1324,7 @@ export default function AdminDashboard() {
               {activePage === "ngos" && <NgoManagementPage ngos={ngos} setNgos={setNgos} />}
               {activePage === "users" && <UserManagementPage users={users} setUsers={setUsers} />}
               {activePage === "resources" && <ResourceMonitorPage resources={resources} setResources={setResources} />}
+              {activePage === "resource-map" && <ResourceHeatmap role="admin" />}
               {activePage === "tasks" && <TaskMonitorPage tasks={tasks} users={users} />}
               {activePage === "proofs" && <ProofVerificationPage proofs={proofs} setProofs={setProofs} />}
               {activePage === "issues" && <IssuesPage issues={issues} setIssues={setIssues} />}

@@ -21,6 +21,7 @@ import saharaLogo from "@assets/ChatGPT_Image_Apr_19,_2026,_08_38_53_PM_17766113
 import AIChatbot from "../components/AIChatbot";
 import ImageMarquee from "../components/ImageMarquee";
 import FloatingBackground from "../components/FloatingBackground";
+import ResourceHeatmap from "../components/ResourceHeatmap";
 import { dashboardGalleryImages } from "../lib/dashboardGallery";
 import { allocateTasks, predictPriority, verifyProof, type AIAllocation } from "../lib/ai";
 import { loadReviewImages, subscribeToReviewImages, type ReviewImage, type ReviewCategory } from "../lib/smartReviewStore";
@@ -29,7 +30,7 @@ const ORANGE = "#FF7A00";
 const ORANGE_LIGHT = "#FF9A40";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
-type Page = "overview" | "profile" | "register" | "volunteers" | "tasks" | "proofs" | "resources" | "settings";
+type Page = "overview" | "profile" | "register" | "volunteers" | "tasks" | "proofs" | "resources" | "settings" | "resource-map";
 type TaskStatus = "assigned" | "in-progress" | "completed";
 type ProofStatus = "pending" | "approved" | "rejected";
 type ResourceStatus = "available" | "allocated" | "depleted";
@@ -1610,6 +1611,7 @@ const NAV_ITEMS: { page: Page; icon: React.ElementType; label: string }[] = [
   { page: "tasks", icon: ClipboardList, label: "Tasks" },
   { page: "proofs", icon: ShieldCheck, label: "Proof Verification" },
   { page: "resources", icon: Package, label: "Resources" },
+  { page: "resource-map", icon: MapPin, label: "Resource Map" },
   { page: "settings", icon: SettingsIcon, label: "Settings" },
 ];
 
@@ -1764,6 +1766,7 @@ export default function NgoDashboard() {
               {activePage === "proofs" && <ProofsPage proofs={proofs} setProofs={setProofs} />}
               {activePage === "settings" && <SettingsPage role="NGO" />}
               {activePage === "resources" && <ResourcesPage resources={resources} setResources={setResources} />}
+              {activePage === "resource-map" && <ResourceHeatmap role="ngo" />}
             </motion.div>
           </AnimatePresence>
         </main>

@@ -23,6 +23,7 @@ import AIChatbot from "../components/AIChatbot";
 import EmptyState from "../components/EmptyState";
 import ImageMarquee from "../components/ImageMarquee";
 import FloatingBackground from "../components/FloatingBackground";
+import ResourceHeatmap from "../components/ResourceHeatmap";
 import { recommendTasks, verifyProof, type AIPriority } from "../lib/ai";
 
 const volunteerCarouselImages = [
@@ -35,7 +36,7 @@ const volunteerCarouselImages = [
   { src: gallery7, alt: "NGO volunteer with community" },
 ];
 
-type Page = "dashboard" | "available-tasks" | "my-tasks" | "scoreboard" | "profile" | "settings";
+type Page = "dashboard" | "available-tasks" | "my-tasks" | "scoreboard" | "profile" | "settings" | "resource-map";
 type TaskStatus = "pending" | "in-progress" | "completed";
 
 interface MyTaskItem {
@@ -1141,6 +1142,7 @@ function ProfilePage({ profile, onSave }: { profile: VolunteerProfile; onSave: (
 const pageTitle: Record<Page, string> = {
   dashboard: "Dashboard", "available-tasks": "Available Tasks",
   "my-tasks": "My Tasks", scoreboard: "Scoreboard", profile: "Profile", settings: "Settings",
+  "resource-map": "Resource Map",
 };
 
 const navItems: { id: Page; icon: React.ElementType; label: string }[] = [
@@ -1148,6 +1150,7 @@ const navItems: { id: Page; icon: React.ElementType; label: string }[] = [
   { id: "available-tasks", icon: ClipboardList, label: "Available Tasks" },
   { id: "my-tasks", icon: CheckSquare, label: "My Tasks" },
   { id: "scoreboard", icon: Trophy, label: "Scoreboard" },
+  { id: "resource-map", icon: MapPin, label: "Resource Map" },
   { id: "profile", icon: User, label: "Profile" },
   { id: "settings", icon: Settings, label: "Settings" },
 ];
@@ -1351,6 +1354,7 @@ export default function VolunteerDashboard() {
           {activePage === "available-tasks" && <AvailableTasksPage tasks={availableTasks} acceptedIds={acceptedIds} onAccept={handleAcceptTask} />}
           {activePage === "my-tasks" && <MyTasksPage myTasksList={myTasksList} onUpdateStatus={handleUpdateStatus} onUploadProof={handleUploadProof} onAddTask={handleAddMyTask} />}
           {activePage === "scoreboard" && <ScoreboardPage entries={scoreboardEntries} />}
+          {activePage === "resource-map" && <ResourceHeatmap role="volunteer" />}
           {activePage === "profile" && <ProfilePage profile={volunteerProfile} onSave={setVolunteerProfile} />}
           {activePage === "settings" && <SettingsPage />}
         </main>
