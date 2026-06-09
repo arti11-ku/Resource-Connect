@@ -1,0 +1,119 @@
+I am working on the frontend of my project (React + existing UI already built).
+
+IMPORTANT:
+
+* Do NOT change the existing layout, structure, or color theme
+* Do NOT break any current functionality
+* Only enhance by ADDING features and smooth interactivity
+
+---
+
+## 🚀 FEATURE 1: AI CHATBOT (Gemini API)
+
+Add a floating AI chatbot assistant across the entire app:
+
+Requirements:
+
+* Use Google Gemini API (latest model)
+* Floating chat icon at bottom-right corner
+* On click → open chat window (modern UI, smooth animation)
+* Chat UI should include:
+
+  * User messages (right aligned)
+  * Bot responses (left aligned)
+  * Typing indicator animation
+* Maintain chat history during session
+
+Functionality:
+
+* Chatbot should help users with:
+
+  * How to report issues
+  * How to use dashboard
+  * Suggest resource actions based on user queries
+* Use prompt engineering to make responses helpful and context-aware (related to NGO/resource allocation system)
+
+UI Enhancements:
+
+* Smooth open/close animation
+* Subtle hover effects
+* Clean modern design (glassmorphism or soft shadows)
+
+---
+
+## 🗺️ FEATURE 2: GOOGLE MAP INTEGRATION (Issue Reporting)
+
+In the "Report Issue" form:
+
+Add location selection using Google Maps API:
+
+Requirements:
+
+* Embed interactive Google Map component
+* Allow user to:
+
+  * Click on map to select location
+  * OR search location using autocomplete search bar
+* On selection:
+
+  * Capture latitude & longitude
+  * Show marker on map
+  * Auto-fill location field
+
+Optional enhancements:
+
+* Reverse geocoding (convert coordinates → address)
+* Show selected location preview
+
+---
+
+## ✨ FEATURE 3: UI INTERACTIVITY & ANIMATIONS
+
+Enhance UI without changing structure:
+
+Add:
+
+* Smooth hover animations on cards, buttons, dashboards
+* Micro-interactions:
+
+  * Button press effects
+  * Card lift on hover
+* Scroll-based animations:
+
+  * Fade-in / slide-in elements
+* Graph interaction:
+
+  * On hover → show tooltips with details
+* Loader animations where needed
+
+Make UI feel:
+
+* Smooth
+* Responsive
+* Modern (like premium SaaS dashboard)
+
+---
+
+## ⚙️ TECH REQUIREMENTS
+
+* Keep code modular and reusable
+* Use clean React components
+* Do not remove existing components
+* Ensure responsiveness (mobile + desktop)
+* Avoid unnecessary dependencies
+
+---
+
+## 🎯 FINAL GOAL
+
+The app should feel:
+
+* Intelligent (AI chatbot)
+* Interactive (animations)
+* Real-world usable (map-based reporting)
+
+Do not redesign — only enhance.
+
+---
+
+Implement all features step by step and ensure everything works smoothly together.

@@ -1,0 +1,73 @@
+The login page UI is already created and looks good. Do NOT modify the login design.
+
+Now implement the Sign Up flow:
+
+When the user clicks on "Sign Up" from the login page, navigate to a new Sign Up page.
+
+Design Requirements:
+- Maintain the same Indian-inspired UI theme (soft saffron/orange + white)
+- Keep background mostly white with light orange gradients
+- Use the same fonts, spacing, and styling as login page for consistency
+- Clean, modern, responsive design
+
+Signup Page Layout:
+
+1. Header:
+- Title: "Create Your Account"
+- Subtitle: "Join the Smart Resource Allocation System"
+
+2. Form Fields (Basic Details):
+- Full Name (text)
+- Age (number)
+- Gender (dropdown: Male, Female, Other)
+- State (text or dropdown)
+- City (text)
+- Occupation (text)
+- Email ID (email input)
+- Phone Number (number input)
+- Password
+- Confirm Password
+
+3. Role Selection:
+Dropdown with:
+- Reporter
+- NGO
+- Admin
+- Volunteer
+- Donor
+
+4. Conditional Fields (IMPORTANT):
+If user selects "Volunteer", dynamically show:
+- Skills (multi-select or input tags, e.g., First Aid, Teaching, Driving)
+- Availability:
+  - Day / Night (checkbox)
+  - Weekdays / Weekends (checkbox)
+- Preferred Work Type (optional)
+
+5. UI Behavior:
+- Fields should appear dynamically based on role selection
+- Smooth transitions when showing/hiding fields
+- Validate required fields before submission
+
+6. Buttons:
+- "Sign Up" (primary orange button)
+- "Already have an account? Login" (redirect back to login page)
+
+7. Mobile Responsive:
+- Form stacked vertically
+- Proper spacing and readable inputs
+
+Technical Requirements:
+- Use React + Tailwind CSS
+- Use useState for form handling
+- Conditional rendering for volunteer fields
+- Clean component structure
+
+Navigation Logic:
+- Clicking "Sign Up" on login page → opens this signup page
+- Clicking "Login" on signup page → returns to login page
+
+Extra:
+- Add icons inside inputs (optional)
+- Add subtle animations and hover effects
+- Keep UI simple, professional, and user-friendly

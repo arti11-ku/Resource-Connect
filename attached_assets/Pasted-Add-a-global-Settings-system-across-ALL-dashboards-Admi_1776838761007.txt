@@ -1,0 +1,90 @@
+Add a global Settings system across ALL dashboards (Admin, NGO, Reporter, Volunteer) and implement Dark Mode support.
+
+You are allowed to modify layouts, navigation, and global styling to support settings and theming.
+
+---
+
+## ⚙️ GLOBAL SETTINGS (ALL DASHBOARDS)
+
+* Add a "Settings" option in the sidebar (same style as Volunteer dashboard)
+
+* Settings page should include:
+
+  * Profile info (name, email – editable UI optional)
+  * Notification toggle (UI only is fine)
+  * Theme toggle (Light / Dark mode) ← IMPORTANT
+  * Optional: Language selector (UI placeholder)
+
+* Ensure Settings is accessible in:
+
+  * Admin Dashboard
+  * NGO Dashboard
+  * Reporter Dashboard
+  * Volunteer Dashboard
+
+---
+
+## 🌙 DARK MODE (ALL DASHBOARDS)
+
+* Implement full Dark Mode support:
+
+  * Toggle switch inside Settings
+  * When enabled:
+
+    * Background → dark (gray-900 / black)
+    * Text → light (white / gray-200)
+    * Cards → dark with soft shadow
+    * Charts → adapt colors for dark theme
+    * Buttons → adjusted contrast
+
+* Use Tailwind dark mode ("class" strategy):
+
+  * Apply `dark` class at root (html/body)
+  * Use `dark:` variants for styling
+
+* Persist user preference:
+
+  * Save theme in localStorage
+  * Load saved theme on refresh
+
+---
+
+## 🎨 UI CONSISTENCY
+
+* Ensure both Light and Dark themes look clean and modern
+* Maintain consistent spacing, colors, and readability
+* Smooth transition when switching theme (fade effect)
+
+---
+
+## 🔁 GLOBAL STATE MANAGEMENT
+
+* Use global state (Context API or similar):
+
+  * Store theme (light/dark)
+  * Access it across all dashboards
+
+---
+
+## 📊 ADMIN DASHBOARD (KEEP ALL PREVIOUS ENHANCEMENTS)
+
+* Do NOT remove previous improvements:
+
+  * 3D animated charts
+  * AI resource monitoring
+  * Proof verification with images
+  * Issues & alerts fix
+  * Interactive reports
+
+* Ensure all Admin features ALSO support Dark Mode properly
+
+---
+
+## 🎯 GOAL
+
+* Unified Settings experience across all dashboards
+* Smooth, modern Dark Mode
+* Fully consistent UI system
+* Maintain all previously added advanced features
+
+Do not keep it basic — ensure theme switching is smooth, consistent, and applied everywhere.

@@ -1,0 +1,108 @@
+I am working on the frontend of my React project.
+
+IMPORTANT:
+
+* Do NOT change existing layout, colors, or structure
+* Do NOT break any current components
+* Only ADD a footer at the bottom of all pages
+
+---
+
+## 📌 FEATURE: PROFESSIONAL FOOTER
+
+Add a responsive footer that appears at the bottom of the website (like modern SaaS/web apps).
+
+---
+
+## 🎨 DESIGN REQUIREMENTS
+
+* Full-width footer (stretch across screen)
+* Positioned at the bottom of the page
+* Clean, modern design (match existing UI theme)
+* Use subtle background (slightly darker than main UI or soft contrast)
+* Add padding and spacing for readability
+
+---
+
+## 📂 FOOTER CONTENT SECTIONS
+
+Divide footer into 4 sections:
+
+### 1. About
+
+* Project name (e.g., Resource Connect)
+* Short description (1–2 lines about platform purpose)
+
+### 2. Quick Links
+
+* Dashboard
+* Report Issue
+* About
+* Contact
+
+### 3. Contact / Support
+
+* Email (dummy or placeholder)
+* Phone (optional)
+* Location (optional)
+
+### 4. Social Links
+
+* Icons for:
+
+  * LinkedIn
+  * GitHub
+  * Twitter (X)
+* Add hover effects on icons
+
+---
+
+## ⚙️ FUNCTIONALITY
+
+* Links should navigate to existing pages (if available)
+* Smooth hover animations
+* Responsive design:
+
+  * Stack sections vertically on mobile
+  * Grid layout on desktop
+
+---
+
+## ✨ UI ENHANCEMENTS
+
+* Add hover effects on links (underline or color change)
+* Add subtle fade-in animation when footer appears
+* Add divider line above footer (optional)
+
+---
+
+## 📍 POSITIONING (VERY IMPORTANT)
+
+* Footer must always stay at the bottom:
+
+  * If page content is short → stick to bottom
+  * If page is long → appear after content
+
+(Hint: use flex layout or min-height approach)
+
+---
+
+## 🧱 TECH REQUIREMENTS
+
+* Create reusable Footer component
+* Import and use in main layout or App component
+* Keep code clean and modular
+* Do not duplicate code across pages
+
+---
+
+## 🎯 FINAL GOAL
+
+Footer should look:
+
+* Professional
+* Clean
+* Consistent with existing UI
+* Similar to real-world production websites
+
+Do not redesign the page — only enhance by adding footer.

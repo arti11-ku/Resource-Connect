@@ -1,0 +1,111 @@
+Create a modern, responsive Volunteer Dashboard UI for a web application called "SAHARA – Smart Resource Allocation System".
+
+Design Style:
+- Clean, minimal UI with Indian-inspired saffron/orange (#FF7A00) and white theme
+- Soft gradients (light orange + white), not heavy colors
+- Use Poppins font
+- Rounded cards, subtle shadows, smooth hover effects
+- Professional dashboard look (like real-world platforms)
+
+Layout:
+
+1. Top Navbar:
+- Left: SAHARA logo
+- Right: Profile icon, notifications bell, logout
+
+2. Sidebar (Left):
+- Dashboard
+- Available Tasks
+- My Tasks
+- Scoreboard
+- Profile
+- Settings
+
+3. Main Dashboard (Volunteer Home):
+
+A. Welcome Section:
+- "Welcome, [Name]"
+- Short message: "Ready to make an impact today?"
+
+B. Stats Cards (4 cards):
+- Tasks Completed
+- Points Earned
+- Active Tasks
+- Rank (on leaderboard)
+
+C. Available Tasks Section:
+- Task cards showing:
+  - Task Title
+  - Location
+  - Required Skills
+  - Urgency level (color-coded)
+  - Button: "Accept Task"
+
+D. My Tasks:
+- List of assigned tasks
+- Status: Pending / In Progress / Completed
+- Button: "Update Status"
+
+E. Volunteer Profile Summary:
+- Skills (tags)
+- Availability (Day/Night, Weekdays/Weekends)
+- Edit Profile button
+
+---
+
+4. Scoreboard / Leaderboard Page:
+
+A. Header:
+- Title: "Volunteer Leaderboard"
+
+B. Leaderboard Table:
+Columns:
+- Rank
+- Name
+- Points
+- Tasks Completed
+- Badge (Top Performer, Active Helper, etc.)
+
+C. Highlight:
+- Current user row highlighted
+
+D. Top 3 Volunteers Section:
+- Card-style display with avatars and medals 🥇🥈🥉
+
+E. Progress Section:
+- Show user progress bar:
+  - "You are 120 points away from Top 10"
+
+---
+
+5. Gamification Features (IMPORTANT):
+- Points system:
+  - Completing tasks → +points
+  - High priority tasks → bonus points
+- Badges:
+  - Beginner
+  - Active Volunteer
+  - Hero Contributor
+
+---
+
+6. UI Details:
+- Use icons (tasks, trophy, user, etc.)
+- Smooth transitions and hover effects
+- Clean spacing and alignment
+- Mobile responsive (stack layout)
+
+---
+
+Technical Requirements:
+- React + Tailwind CSS
+- Component-based structure
+- Reusable cards (TaskCard, StatCard, LeaderboardRow)
+- Use dummy data for now
+
+---
+
+Extra:
+- Keep it realistic like a real NGO/government platform
+- Focus on usability and clarity
+- Avoid clutter, keep it clean and modern

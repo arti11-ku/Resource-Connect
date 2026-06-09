@@ -1,0 +1,242 @@
+Create an Admin Dashboard (Super Admin) for a Smart Resource Allocation System.
+
+IMPORTANT ROLE BEHAVIOR:
+
+* When a user signs up or logs in as ADMIN, automatically redirect them to the Admin Dashboard.
+* Ensure role-based routing so only admin users can access this dashboard.
+
+---
+
+## CORE FUNCTIONAL FEATURES
+
+1. ADMIN PROFILE SYSTEM:
+
+* Automatically create admin profile using signup/login details (name, email, phone).
+* Display profile section with:
+
+  * Admin Name
+  * Email & Phone
+* Add “Edit Profile”:
+
+  * Allow editing all fields
+  * Changes must update instantly in UI and database
+
+---
+
+2. NGO MANAGEMENT SYSTEM:
+
+* View all registered NGOs
+* Show details:
+
+  * NGO Name
+  * Registration Number
+  * Type
+  * Status (Pending / Approved / Rejected)
+* Actions:
+
+  * Approve NGO
+  * Reject NGO
+  * Block/Unblock NGO
+* View uploaded NGO documents (images/PDF with preview)
+
+---
+
+3. USER MANAGEMENT:
+
+* View all users:
+
+  * NGOs
+  * Donors
+  * Volunteers
+* Actions:
+
+  * Edit user details
+  * Activate / Deactivate accounts
+  * Delete users if needed
+
+---
+
+4. GLOBAL DASHBOARD OVERVIEW:
+
+* Show system-wide stats:
+
+  * Total NGOs
+  * Total Donors
+  * Total Volunteers
+  * Total Tasks
+  * Total Resources Distributed
+
+Include:
+
+* Bar Chart → Platform activity (tasks over time)
+* Pie Chart → User distribution (NGO, Donor, Volunteer)
+
+---
+
+5. RESOURCE MONITORING:
+
+* Track all resources across NGOs:
+
+  * Available
+  * Allocated
+* Identify shortages
+* View resource flow between NGOs and locations
+
+---
+
+6. TASK & ACTIVITY MONITORING:
+
+* View all tasks created by NGOs
+* Track:
+
+  * Status (Pending, In Progress, Completed)
+  * Assigned volunteers
+* Detect delays or inactive tasks
+
+---
+
+7. PROOF & VERIFICATION CONTROL:
+
+* View proofs submitted by NGOs/volunteers:
+
+  * Images / documents
+* Verify authenticity:
+
+  * Approve / Reject
+* Detect suspicious or fake uploads
+
+---
+
+8. ISSUE & ALERT MANAGEMENT:
+
+* View flagged issues:
+
+  * Fraud reports
+  * Delays
+  * Resource misuse
+* Take actions:
+
+  * Send warning
+  * Suspend NGO/user
+
+---
+
+9. REPORTS & ANALYTICS:
+
+* Generate system-wide reports:
+
+  * NGO performance
+  * Donation usage
+  * Resource distribution
+* Allow export (PDF/CSV)
+
+---
+
+10. FULL EDITABLE SYSTEM:
+
+* Admin can edit:
+
+  * NGOs
+  * Users
+  * Resources
+  * Tasks
+* All updates must reflect instantly in UI and backend
+
+---
+
+11. SEARCH & FILTER SYSTEM:
+
+* Search NGOs/users by name
+* Filters:
+
+  * Status
+  * Type
+  * Activity level
+
+---
+
+## UI/UX ENHANCEMENT INSTRUCTIONS (VERY IMPORTANT)
+
+I am working on the frontend of my project.
+
+DO NOT change:
+
+* Existing UI design
+* Layout structure
+* Colors
+* Components
+* Data or logic
+
+ONLY enhance visual experience with animations and interactions.
+
+---
+
+1. SCROLL-BASED ANIMATIONS:
+
+* Elements animate when entering viewport:
+
+  * Fade-in
+  * Slide-up
+  * Drop-down
+* Example:
+
+  * Charts should animate smoothly when visible
+
+---
+
+2. HOVER EFFECTS:
+
+* Add subtle hover effects:
+
+  * Cards → slight scale + shadow
+  * Buttons → smooth highlight
+  * Tables → row highlight on hover
+
+---
+
+3. TRANSITIONS:
+
+* Use smooth transitions (0.3s–0.5s)
+
+---
+
+4. GRAPH INTERACTIVITY:
+
+* On hover:
+
+  * Show tooltips (label, value, percentage)
+  * Highlight hovered section (scale/brightness)
+
+---
+
+5. CHART LIBRARY:
+
+* Use Recharts or Chart.js
+* Enable tooltips and animations
+
+---
+
+6. ANIMATION LIBRARY:
+
+* Use:
+
+  * Framer Motion (preferred)
+    OR
+  * AOS
+    OR
+  * Pure CSS animations
+
+---
+
+7. PERFORMANCE:
+
+* Ensure animations are smooth and not heavy
+* Avoid unnecessary effects
+
+---
+
+FINAL REQUIREMENT:
+
+* Do NOT redesign UI
+* Only enhance animations and interactivity
+* Maintain clean, responsive, professional dashboard

@@ -1,0 +1,104 @@
+Enhance and fix the Reporter Dashboard with functional improvements, AI integration, and advanced UI animations.
+
+You are allowed to modify layout, logic, UI components, and styling to improve usability and functionality.
+
+---
+
+## 🔧 BUG FIXES (HIGH PRIORITY)
+
+1. Proof Verification Section:
+
+* Remove "Upload Image" option from this section completely
+* Fix "Approve" and "Reject" buttons:
+
+  * When clicked, they must update the status in backend/database
+  * Add proper click handlers and ensure state updates immediately in UI
+  * Show visual feedback (success toast / status change)
+* When clicking on a proof item:
+
+  * Open a detailed modal or new page
+  * Show full details of the proof
+
+2. Flag Issue Problem:
+
+* After submitting the "Flag Issue" form:
+
+  * Ensure the issue is stored properly (database or state)
+  * Immediately reflect it in the Issue Reporting section
+  * Add real-time UI update (no refresh required)
+
+---
+
+## 🤖 AI COMMUNICATION PANEL
+
+* Add an AI chatbot in the communication panel
+* Integrate with Gemini API or any available AI API
+* Features:
+
+  * User types a question → AI responds instantly
+  * Show chat UI (messages, typing indicator)
+  * Maintain conversation history (session-based)
+* Keep UI clean and modern (chat bubbles, smooth animation)
+
+---
+
+## 🖼️ SMART IMAGE HANDLING (IMPORTANT)
+
+Create an intelligent image upload + categorization system:
+
+1. In Review Section:
+
+* Allow image upload
+* When user uploads image:
+
+  * Automatically categorize based on context/label:
+
+    * Blood → goes to Blood Donation section
+    * Trees → goes to Tree Plantation section
+    * Food → goes to Food Distribution section
+* Use simple keyword matching or AI-based classification
+
+2. Display:
+
+* Each category should show its respective images
+* When clicking a review:
+
+  * Open full view (modal/lightbox)
+  * Show image in large size with details
+
+---
+
+## ✨ UI / ANIMATION ENHANCEMENTS
+
+* Add floating images across dashboard:
+
+  * Subtle up-down animation (continuous)
+  * Place them in background or sections
+* Add scroll animations:
+
+  * Fade + slide for sections
+* Add hover effects:
+
+  * Cards scale slightly + shadow
+* Use smooth transitions everywhere
+
+---
+
+## ⚙️ TECH REQUIREMENTS
+
+* Use React + Tailwind CSS
+* Use Framer Motion for animations
+* Use proper state management (React state / context)
+* Ensure all features are responsive
+
+---
+
+## 🎯 GOAL
+
+Make the dashboard:
+
+* Fully functional (no broken buttons or forms)
+* Smart (auto image categorization + AI chatbot)
+* Visually dynamic (animations + floating elements)
+
+Do not keep changes minimal — fix logic AND enhance UI significantly.

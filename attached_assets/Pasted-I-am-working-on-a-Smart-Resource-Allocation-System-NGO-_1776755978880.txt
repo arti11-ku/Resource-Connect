@@ -1,0 +1,96 @@
+I am working on a Smart Resource Allocation System (NGO-based project).
+
+IMPORTANT:
+
+* Do NOT change existing UI design, layout, colors, or structure.
+* Only enhance functionality by adding AI-based features.
+* Keep all dashboards (Admin, NGO, Volunteer, Reporter, Donor) exactly as they are.
+
+Now add the following AI-powered features:
+
+---
+
+1. SMART TASK ASSIGNMENT (AUTO ALLOCATION)
+
+* Add a button: "Run AI Allocation" in Admin/NGO dashboard
+* When clicked:
+
+  * Automatically assign tasks to volunteers
+  * Use these factors:
+    • Skill match
+    • Distance/location
+    • Availability
+    • Past performance rating
+  * Show reasoning:
+    Example:
+    "Assigned to Rahul (92% skill match, 3km away, high rating)"
+
+---
+
+2. PRIORITY PREDICTION SYSTEM
+
+* For each task:
+
+  * Automatically assign priority: High / Medium / Low
+* Based on:
+  • Deadline
+  • Task type (medical > food > education)
+* Show colored tags:
+
+  * Red = High
+  * Yellow = Medium
+  * Green = Low
+
+---
+
+3. AI CHATBOT ASSISTANT
+
+* Add chatbot icon (bottom right corner)
+* Features:
+
+  * "Show my tasks"
+  * "Which tasks are urgent?"
+  * "Assign me a task"
+* Keep it simple rule-based (no external API required)
+
+---
+
+4. PROOF VERIFICATION (BASIC AI LOGIC)
+
+* When volunteer uploads proof:
+
+  * Show preview of image
+  * Add status:
+    • "Pending AI Check"
+    • "Verified"
+  * Simulate verification logic (for now)
+
+---
+
+5. SMART RECOMMENDATION SYSTEM
+
+* In Volunteer dashboard:
+
+  * Add section: "Recommended Tasks for You"
+* Based on:
+  • Skills
+  • Previous tasks
+
+---
+
+TECH REQUIREMENTS:
+
+* Use clean modular code
+* Keep logic separate from UI
+* Use simple AI logic (no heavy APIs required)
+* Add comments explaining AI decisions
+
+---
+
+GOAL:
+Convert this project from a normal dashboard into an "AI-powered smart decision system"
+
+---
+
+Do NOT remove or redesign any existing feature.
+Only enhance with AI logic + smooth interactions.

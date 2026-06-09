@@ -1,0 +1,176 @@
+I am building a Smart Resource Allocation System. I have already completed most of the frontend (multiple dashboards for NGO, Volunteer, Reporter, and Admin). Now I want you to generate a complete backend using Python and FastAPI.
+
+IMPORTANT INSTRUCTIONS:
+
+* Do NOT change frontend structure. Backend must match my frontend flows.
+* Use clean, modular code structure.
+* Use MongoDB as database.
+* Use JWT authentication.
+* Make APIs production-ready but simple enough for a hackathon MVP.
+
+---
+
+FEATURE REQUIREMENTS:
+
+1. AUTHENTICATION SYSTEM
+
+* Signup/Login for roles: NGO, Volunteer, Reporter, Admin
+* Store: name, email, phone, role, location, password (hashed)
+* Return JWT token on login
+* Role-based access control
+
+APIs:
+POST /auth/signup
+POST /auth/login
+GET /auth/profile
+
+---
+
+2. NGO DASHBOARD FEATURES
+
+* NGO can create tasks
+* Fields: title, description, location, required skills, deadline, priority
+* View all tasks created
+* Track task status (Pending, Active, Completed)
+
+APIs:
+POST /tasks/create
+GET /tasks/ngo
+PUT /tasks/update/{task_id}
+
+---
+
+3. VOLUNTEER DASHBOARD FEATURES
+
+* View available tasks
+* Accept task
+* Mark task as in-progress / completed
+* Upload proof (image/file)
+
+APIs:
+GET /tasks/available
+POST /tasks/accept/{task_id}
+PUT /tasks/status/{task_id}
+POST /proof/upload
+
+---
+
+4. REPORTER DASHBOARD FEATURES
+
+* Report issues with:
+
+  * description
+  * location
+  * image upload
+* Issues should be converted into tasks
+
+APIs:
+POST /issues/report
+GET /issues
+POST /issues/convert-to-task/{issue_id}
+
+---
+
+5. ADMIN DASHBOARD FEATURES
+
+* View all users
+* View all tasks
+* Verify proof (approve/reject)
+* Flag issues/tasks
+
+APIs:
+GET /admin/users
+GET /admin/tasks
+PUT /admin/verify-proof/{proof_id}
+PUT /admin/flag/{id}
+
+---
+
+6. AI-BASED SMART ALLOCATION (IMPORTANT)
+
+* Implement a simple intelligent allocation system:
+
+  * Match volunteer to task based on:
+
+    * location
+    * skills
+    * availability
+* Create endpoint:
+  POST /ai/auto-assign/{task_id}
+
+Logic:
+
+* Find best matching volunteer
+* Assign automatically
+
+---
+
+7. ANALYTICS (FOR DASHBOARD GRAPHS)
+
+* Total tasks
+* Completed tasks
+* Pending tasks
+* User distribution
+
+API:
+GET /analytics/summary
+
+---
+
+8. DATABASE DESIGN (MongoDB)
+   Collections:
+
+* users
+* tasks
+* issues
+* proofs
+
+Each should have proper schema and relationships.
+
+---
+
+9. FILE UPLOAD SYSTEM
+
+* Allow image/file upload for:
+
+  * proof
+  * issue reporting
+* Store file path (local or cloud optional)
+
+---
+
+10. PROJECT STRUCTURE
+
+Organize code like:
+
+* main.py
+* routes/
+* models/
+* schemas/
+* services/
+* database/
+
+---
+
+11. ADDITIONAL REQUIREMENTS
+
+* Use Pydantic models
+* Add proper error handling
+* Use environment variables (.env)
+* Enable CORS for frontend connection
+* Write clear comments in code
+
+---
+
+GOAL:
+Generate a complete working FastAPI backend that I can directly deploy on Render and connect with my frontend.
+
+Also include:
+
+* requirements.txt
+* example .env file
+* instructions to run locally
+
+---
+
+Do not overcomplicate. Keep it clean, working, and hackathon-ready.

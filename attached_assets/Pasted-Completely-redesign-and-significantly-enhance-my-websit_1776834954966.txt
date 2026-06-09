@@ -1,0 +1,73 @@
+Completely redesign and significantly enhance my website UI to be highly interactive, animation-rich, and visually engaging.
+
+You are NOT restricted to minor changes. You are allowed to:
+
+* Modify layouts
+* Improve spacing and alignment
+* Introduce new UI sections if needed
+* Enhance visual hierarchy
+* Add modern design patterns
+
+Design Direction:
+
+* Inspired by modern animated websites like Apple and Blogger
+* Keep orange as a base color, but ADD complementary colors:
+
+  * Soft gradients (purple, blue, pink, light yellow)
+  * Use gradient backgrounds instead of flat colors
+* Avoid a single-color (orange-only) UI — make it vibrant but balanced
+* Use glassmorphism / soft shadows / blur effects where suitable
+
+Animations (IMPORTANT — focus heavily here):
+
+* Add rich scroll-based animations across ALL sections:
+
+  * Fade + slide + scale combinations
+  * Stagger animations (elements appear one after another)
+* Add parallax effects (background moves slower than foreground)
+* Add floating animations to images, icons, and shapes (continuous gentle movement)
+* Add animated gradient backgrounds (slow color shifting)
+* Add reveal-on-scroll for EVERY section (no static sections)
+
+Micro Interactions:
+
+* Cards:
+
+  * Scale up + shadow + slight tilt on hover
+* Buttons:
+
+  * Smooth hover transitions (color shift, glow, slight lift)
+* Images:
+
+  * Subtle zoom on hover
+* Navigation:
+
+  * Smooth transitions and highlight active sections
+
+Hero Section:
+
+* Large bold heading
+* Animated gradient background
+* Floating illustration/image
+* Subtle moving shapes/blobs in background
+
+Advanced Enhancements:
+
+* Add animated background blobs or SVG shapes
+* Use Framer Motion for smooth, physics-based animations
+* Add easing (easeInOut) and duration tuning for premium feel
+* Add section transitions (not just instant jumps)
+
+Technical Requirements:
+
+* Use React + Tailwind CSS
+* Use Framer Motion extensively
+* Use whileInView / Intersection Observer
+* Ensure animations are smooth and not laggy
+* Fully responsive design
+
+Goal:
+Make the website feel alive, dynamic, and modern — not static.
+Every section should have motion and interaction.
+
+Do NOT keep changes minimal — prioritize strong visual transformation and animation quality.

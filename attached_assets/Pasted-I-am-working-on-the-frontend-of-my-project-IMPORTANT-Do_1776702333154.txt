@@ -1,0 +1,60 @@
+I am working on the frontend of my project.
+
+IMPORTANT:
+- Do NOT change the existing UI design, layout, colors, components, or structure.
+- Do NOT remove or redesign anything.
+- Only enhance the UI by adding smooth animations, transitions, and interactive effects.
+
+I want to improve the user experience by adding modern, smooth website behaviors similar to high-quality professional websites.
+
+Requirements:
+
+1. Smooth Hover Effects:
+- Add very smooth hover transitions on buttons, cards, links, and interactive elements.
+- Use ease-in-out transitions (300ms–500ms).
+- Add subtle scale (e.g., transform: scale(1.03)) and shadow effects on hover.
+- Ensure animations feel premium, not flashy or abrupt.
+
+2. Auto-Moving "Our Partners" Section:
+- Create a horizontally scrolling section (infinite loop).
+- Logos/items should automatically move from right to left continuously.
+- Pause animation on hover.
+- Ensure smooth, seamless looping (no jumps).
+- Make it responsive for all screen sizes.
+
+3. Auto-Scrolling Text / Names Section:
+- Add a section where names/text move automatically (like a marquee but modern).
+- Smooth continuous motion (not the old HTML marquee).
+- Can be horizontal or vertical scrolling.
+- Add fade-in/out edges for a professional look.
+
+4. Scroll-Based Animations:
+- When scrolling, elements should:
+  - Fade in
+  - Slide up/down
+  - Slightly stagger (delay between items)
+- Use Intersection Observer or similar for performance.
+
+5. Graph Hover Effects:
+- On hovering over graphs/charts, show detailed tooltips.
+- Add smooth highlight effects on hover (bars, pie slices, etc.).
+- Ensure transitions are fluid.
+
+6. Micro Interactions:
+- Add subtle animations on:
+  - Button clicks
+  - Card hover
+  - Section entry
+- Avoid over-animation. Keep it minimal and elegant.
+
+7. Performance Optimization:
+- Use CSS transitions or lightweight animation libraries (like Framer Motion or GSAP only if necessary).
+- Ensure animations are smooth (60fps).
+- Avoid heavy or laggy effects.
+
+8. Mobile Responsiveness:
+- Ensure all animations work smoothly on mobile devices.
+- Disable or simplify heavy animations on small screens if needed.
+
+Goal:
+Make the UI feel modern, smooth, and premium through animations — without changing the design itself.

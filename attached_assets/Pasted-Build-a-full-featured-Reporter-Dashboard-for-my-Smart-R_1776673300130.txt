@@ -1,0 +1,208 @@
+Build a full-featured "Reporter Dashboard" for my Smart Resource Allocation web application.
+
+⚙️ Tech Stack:
+
+* Frontend: React (with modern UI, Tailwind CSS preferred)
+* Backend: Node.js + Express
+* Database: MongoDB (or any simple DB if needed)
+* File Upload: Use Multer or similar for handling images/files
+
+🎯 Core Requirement:
+Add a new role called "Reporter".
+
+When a user signs up or logs in:
+
+* If role = "Reporter", automatically redirect them to "/reporter-dashboard"
+* Ensure proper role-based authentication and protected routes
+
+---
+
+🧭 REPORTER DASHBOARD FEATURES:
+
+1. 📊 Dashboard Overview (Top Section)
+
+* Show cards:
+
+  * Total Active Tasks
+  * Completed Tasks
+  * Pending Tasks
+  * Issues Flagged
+  * Reports Submitted
+* Include simple charts (bar/pie/line) for:
+
+  * Task completion rate
+  * Delayed vs completed tasks
+
+---
+
+2. 📝 Task Monitoring Panel
+
+* Display all tasks in:
+
+  * Table view AND optional Kanban view
+* Columns:
+
+  * Task Title
+  * Description
+  * Assigned Volunteer
+  * Status (Available / Accepted / In Progress / Completed)
+  * Deadline
+* Add filters:
+
+  * By status
+  * By deadline
+  * By volunteer
+* Reporter should NOT be able to edit tasks
+
+---
+
+3. 📸 Proof Verification System (IMPORTANT)
+
+* Volunteers can upload proof (images/files)
+* Reporter dashboard should:
+
+  * Display uploaded proofs
+  * Show preview (image/file name)
+  * Buttons:
+
+    * Approve ✅
+    * Reject ❌
+  * Add comment/feedback while approving/rejecting
+  * Store:
+
+    * Status (approved/rejected)
+    * Timestamp
+    * Reporter ID
+
+---
+
+4. ⚠️ Issue Reporting System
+
+* Reporter can flag issues on any task
+* Form fields:
+
+  * Issue type (Delay / Invalid Proof / Incomplete Work / Other)
+  * Description
+  * Attach file (optional)
+* Store and display all reported issues
+* Option to "Escalate to Admin"
+
+---
+
+5. 📊 Reports & Analytics Section
+
+* Generate reports:
+
+  * Task completion rate
+  * Volunteer performance
+  * Delayed tasks
+* Add export options:
+
+  * Download as PDF
+  * Download as CSV
+
+---
+
+6. 🔔 Notifications System
+
+* Show notifications for:
+
+  * New proof uploaded
+  * Task completed
+  * Deadline approaching
+  * Issues raised
+* Add notification bell icon with dropdown
+
+---
+
+7. 💬 Communication Panel
+
+* Allow reporter to:
+
+  * Comment on tasks
+  * Chat with volunteers/admin (basic messaging UI is fine)
+
+---
+
+8. 👤 Profile & Activity Log
+
+* Show reporter profile
+* Activity history:
+
+  * Proof approvals/rejections
+  * Issues reported
+  * Reports generated
+
+---
+
+🔐 ROLE PERMISSIONS:
+Reporter CAN:
+
+* View all tasks
+* Verify proof
+* Approve/reject submissions
+* Report issues
+* View analytics
+
+Reporter CANNOT:
+
+* Create tasks
+* Edit tasks
+* Assign tasks
+
+---
+
+📁 BACKEND REQUIREMENTS:
+
+* Create models:
+
+  * User (with role field: admin/volunteer/reporter)
+  * Task
+  * Proof (linked to task + volunteer)
+  * Issue
+* APIs:
+
+  * GET /tasks
+  * GET /proofs
+  * POST /proof/verify
+  * POST /issue
+  * GET /reports
+* Middleware:
+
+  * Role-based access control
+
+---
+
+🎨 UI REQUIREMENTS:
+
+* Clean modern dashboard UI
+* Sidebar navigation:
+
+  * Dashboard
+  * Tasks
+  * Proof Verification
+  * Issues
+  * Reports
+  * Profile
+* Responsive design
+
+---
+
+🚀 EXTRA (if possible):
+
+* Real-time updates (basic polling is fine)
+* Simple loading states and error handling
+
+---
+
+🧠 IMPORTANT:
+
+* Keep code modular and clean
+* Use reusable components
+* Add comments in code for understanding
+* Make sure Reporter dashboard is fully functional and connected to backend APIs
+
+---
+
+End goal:
+A working Reporter Dashboard where a Reporter can log in, monitor tasks, verify proofs, flag issues, and generate reports — without modifying tasks.
