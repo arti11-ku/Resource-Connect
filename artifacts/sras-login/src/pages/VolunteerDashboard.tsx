@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { apiFetch, type BackendTask } from "../lib/api";
+import { dbApi, type DbTask as DbTaskType } from "../lib/dbApi";
 import { FadeDown, FadeUp, FadeIn, StaggerList, StaggerItem, HoverCard, MountFade, SlideInHeader, chartTooltipStyle, chartTooltipCursor } from "../lib/AnimatedComponents";
 import { useLocation } from "wouter";
 import {
@@ -1190,6 +1191,26 @@ export default function VolunteerDashboard() {
   const [totalPoints, setTotalPoints] = useState(INITIAL_POINTS);
   const [tasksCompleted, setTasksCompleted] = useState(INITIAL_TASKS_COMPLETED);
   const [volunteerProfile, setVolunteerProfile] = useState<VolunteerProfile>(getInitialProfile);
+
+  useEffect(() => {
+    dbApi.getTasks().then(dbTasks => {
+      if (dbTasks && dbTasks.length > 0) {
+        setAvailableTasks(dbTasks.map((t: DbTaskType) => ({
+          id: t.id,
+          title: t.title,
+          location: t.location ?? "",
+          deadline: t.deadline ? new Date(t.deadline).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "",
+          time: "9:00 AM – 1:00 PM",
+          skills: t.skills ?? [],
+          urgency: (t.priority === "high" ? "high" : t.priority === "medium" ? "medium" : "low") as "high" | "medium" | "low",
+          category: t.category ?? "General",
+          points: t.points ?? 60,
+          slots: 5,
+          description: t.description,
+        })));
+      }
+    }).catch(() => {});
+  }, []);
 
   const refreshAvailable = useCallback(async () => {
     try {

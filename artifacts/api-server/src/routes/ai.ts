@@ -1,4 +1,6 @@
 import { Router, type IRouter } from "express";
+import { db, aiAllocationsTable, resourcesTable, volunteersTable, usersTable } from "@workspace/db";
+import { eq } from "drizzle-orm";
 
 const router: IRouter = Router();
 
@@ -27,10 +29,12 @@ async function callGemini(prompt: string): Promise<string> {
 
 router.post("/ai/allocate", async (req, res) => {
   try {
-    const { report, resources, volunteers } = req.body as {
+    const { report, resources, volunteers, reportId, saveToDb } = req.body as {
       report: { type: string; affected_people: number; severity: string; location?: string };
       resources: { name: string; quantity: number; unit?: string }[];
       volunteers: { name: string; skills: string[]; availability?: string; location?: string }[];
+      reportId?: number;
+      saveToDb?: boolean;
     };
 
     const prompt = `You are an AI resource allocation assistant for a disaster relief NGO platform called SAHARA.
@@ -68,7 +72,62 @@ Rules:
 
     const text = await callGemini(prompt);
     const parsed = JSON.parse(text);
-    res.json({ success: true, allocation: parsed });
+
+    let savedAllocation = null;
+    if (saveToDb !== false) {
+      try {
+        const [row] = await db.insert(aiAllocationsTable).values({
+          reportId: reportId ?? null,
+          priorityLevel: parsed.priority,
+          priorityScore: parsed.priority_score,
+          allocatedResources: parsed.resources,
+          assignedVolunteers: parsed.volunteers,
+          allocationReason: parsed.reason,
+          allocationSummary: parsed.summary,
+          status: "Pending",
+        }).returning();
+        savedAllocation = row;
+      } catch {
+      }
+    }
+
+    res.json({ success: true, allocation: parsed, saved: savedAllocation });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    res.status(500).json({ success: false, error: message });
+  }
+});
+
+router.post("/ai/allocate-from-db", async (req, res) => {
+  try {
+    const { reportId, report } = req.body as {
+      reportId?: number;
+      report: { type: string; affected_people: number; severity: string; location?: string };
+    };
+
+    const [dbResources, dbVolunteers] = await Promise.all([
+      db.select().from(resourcesTable),
+      db.select({
+        id: volunteersTable.id,
+        skills: volunteersTable.skills,
+        availability: volunteersTable.availability,
+        currentStatus: volunteersTable.currentStatus,
+        location: volunteersTable.location,
+        name: usersTable.name,
+      }).from(volunteersTable).leftJoin(usersTable, eq(volunteersTable.userId, usersTable.id))
+        .where(eq(volunteersTable.currentStatus, "Available")),
+    ]);
+
+    const resources = dbResources.map(r => ({ name: r.resourceName, quantity: r.quantity, unit: r.unit ?? "units" }));
+    const volunteers = dbVolunteers.map(v => ({ name: v.name ?? "Unknown", skills: v.skills, availability: v.availability, location: v.location ?? undefined }));
+
+    const forwardRes = await fetch(`http://localhost:${process.env["PORT"]}/api/ai/allocate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ report, resources, volunteers, reportId, saveToDb: true }),
+    });
+    const data = await forwardRes.json();
+    res.json(data);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     res.status(500).json({ success: false, error: message });

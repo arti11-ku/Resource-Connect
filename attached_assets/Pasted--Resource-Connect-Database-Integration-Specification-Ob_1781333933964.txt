@@ -1,0 +1,385 @@
+# Resource Connect - Database Integration Specification
+
+## Objective
+
+Integrate a production-ready PostgreSQL database into the existing Resource Connect project.
+
+The database should store all application data permanently and support the AI Resource Allocation Engine.
+
+The integration must preserve the existing project structure, UI design, layouts, navigation, styling, routes, workflows, and user experience.
+
+---
+
+# Important Requirements
+
+## Do Not Modify
+
+* UI design
+* Layouts
+* Navigation structure
+* Existing pages
+* Existing content
+* Styling and alignment
+* Authentication flow
+* Dashboard structure
+
+The database should work behind the scenes without changing the visual appearance of the application.
+
+---
+
+# Database Technology
+
+Use:
+
+* PostgreSQL
+
+Requirements:
+
+* Production-ready schema
+* Foreign key relationships
+* Indexed primary keys
+* Environment variable configuration
+* Database persistence after deployment
+
+---
+
+# Core Database Tables
+
+## Users
+
+Stores all platform users.
+
+Fields:
+
+* id (Primary Key)
+* name
+* email
+* password_hash
+* role
+* phone
+* created_at
+
+Roles:
+
+* Reporter
+* NGO
+* Volunteer
+* Admin
+
+---
+
+## Reports
+
+Stores disaster and resource requests.
+
+Fields:
+
+* id (Primary Key)
+* reporter_id (Foreign Key)
+* title
+* description
+* category
+* severity
+* location
+* status
+* created_at
+
+Status:
+
+* Pending
+* Under Review
+* Approved
+* Completed
+
+---
+
+## NGOs
+
+Stores NGO profiles.
+
+Fields:
+
+* id
+* user_id
+* ngo_name
+* registration_number
+* contact_details
+* address
+* created_at
+
+---
+
+## Volunteers
+
+Stores volunteer information.
+
+Fields:
+
+* id
+* user_id
+* skills
+* availability
+* current_status
+* location
+
+Current Status:
+
+* Available
+* Assigned
+* Busy
+
+---
+
+## Resources
+
+Stores inventory information.
+
+Fields:
+
+* id
+* ngo_id
+* resource_name
+* category
+* quantity
+* location
+* updated_at
+
+Examples:
+
+* Food Packets
+* Water Bottles
+* Blankets
+* Medical Kits
+
+---
+
+## Tasks
+
+Stores assigned work.
+
+Fields:
+
+* id
+* report_id
+* ngo_id
+* title
+* description
+* status
+* created_at
+
+Status:
+
+* Pending
+* Assigned
+* In Progress
+* Completed
+
+---
+
+## Volunteer Assignments
+
+Stores volunteer-task mapping.
+
+Fields:
+
+* id
+* task_id
+* volunteer_id
+* assigned_at
+* assignment_status
+
+---
+
+## Donations
+
+Stores donor information.
+
+Fields:
+
+* id
+* donor_name
+* donor_email
+* amount
+* purpose
+* created_at
+
+---
+
+# AI Resource Allocation Module
+
+Create a dedicated table for AI-generated allocation plans.
+
+## AI_Allocations
+
+Fields:
+
+* id
+* report_id
+* priority_level
+* priority_score
+* allocated_resources
+* assigned_volunteers
+* allocation_reason
+* status
+* created_at
+
+Status:
+
+* Pending
+* Approved
+* Rejected
+
+---
+
+# Data Flow
+
+Reporter submits report
+
+↓
+
+Report stored in database
+
+↓
+
+NGO opens AI Resource Allocation Engine
+
+↓
+
+System fetches:
+
+* Report data
+* Resource inventory
+* Volunteer availability
+
+↓
+
+Gemini generates allocation plan
+
+↓
+
+Plan stored in AI_Allocations table
+
+↓
+
+NGO/Admin reviews
+
+↓
+
+Approved allocation updates resources and assignments
+
+---
+
+# Dashboard Integration
+
+All dashboards should display live database data.
+
+## Reporter Dashboard
+
+Show:
+
+* Submitted reports
+* Status updates
+* Resource request progress
+
+---
+
+## NGO Dashboard
+
+Show:
+
+* Registered resources
+* Active reports
+* Volunteer availability
+* AI allocation recommendations
+
+---
+
+## Volunteer Dashboard
+
+Show:
+
+* Assigned tasks
+* Recommended tasks
+* Task completion history
+
+---
+
+## Admin Dashboard
+
+Show:
+
+* Total users
+* Total NGOs
+* Total reports
+* Total volunteers
+* AI allocation statistics
+
+---
+
+# Database Operations
+
+Implement:
+
+* Create
+* Read
+* Update
+* Delete
+
+for all major entities.
+
+All forms should save data directly to the database.
+
+All dashboards should fetch real-time data from the database.
+
+---
+
+# Environment Variables
+
+Use environment variables only.
+
+Example:
+
+DATABASE_URL=
+GEMINI_API_KEY=
+
+Do not hardcode credentials.
+
+---
+
+# Migration Support
+
+Create migration files for:
+
+* Initial schema creation
+* Future updates
+
+---
+
+# Seed Data
+
+Generate sample data for:
+
+* Users
+* NGOs
+* Volunteers
+* Resources
+* Reports
+
+to simplify testing.
+
+---
+
+# Deployment Requirements
+
+Database must:
+
+* Work after deployment
+* Persist data permanently
+* Support multiple users
+* Support AI Resource Allocation Engine
+
+---
+
+# Expected Outcome
+
+The Resource Connect platform should transition from static/demo data to a fully database-driven system where all reports, resources, volunteers, tasks, donations, and AI allocation plans are stored and managed through PostgreSQL while maintaining the existing project appearance and functionality.

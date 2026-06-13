@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { dbApi, type DbNgo, type DbUser, type DbResource, type DbTask, type DbStats } from "../lib/dbApi";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FadeDown, FadeUp, FadeIn, StaggerList, StaggerItem, HoverCard,
@@ -1200,6 +1201,53 @@ export default function AdminDashboard() {
   const [proofs, setProofs] = useState<ProofEntry[]>(INIT_PROOFS);
   const [issues, setIssues] = useState<IssueEntry[]>(INIT_ISSUES);
   const [resources, setResources] = useState<ResourceEntry[]>(INIT_RESOURCES);
+  const [dbStats, setDbStats] = useState<DbStats | null>(null);
+
+  useEffect(() => {
+    Promise.all([
+      dbApi.getNgos().catch(() => null),
+      dbApi.getUsers().catch(() => null),
+      dbApi.getResources().catch(() => null),
+      dbApi.getTasks().catch(() => null),
+      dbApi.getStats().catch(() => null),
+    ]).then(([dbNgos, dbUsers, dbResources, dbTasks, stats]) => {
+      if (dbNgos && dbNgos.length > 0) {
+        setNgos(dbNgos.map((n: DbNgo) => ({
+          id: n.id,
+          name: n.ngoName,
+          regNumber: n.registrationNumber,
+          type: "Humanitarian",
+          location: n.address ?? "",
+          status: (n.status as NgoStatus) ?? "pending",
+          document: "registration.pdf",
+          submittedAt: new Date(n.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
+        })));
+      }
+      if (dbUsers && dbUsers.length > 0) {
+        setUsers(dbUsers.filter((u: DbUser) => u.role !== "Admin").map((u: DbUser) => ({
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          role: (u.role?.toLowerCase() === "ngo" ? "ngo" : u.role?.toLowerCase() === "volunteer" ? "volunteer" : "donor") as UserRole,
+          status: "active" as UserStatus,
+          joinedAt: new Date(u.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
+          activity: "Active",
+        })));
+      }
+      if (dbResources && dbResources.length > 0) {
+        setResources(dbResources.map((r: DbResource) => ({
+          id: r.id,
+          name: r.resourceName,
+          ngo: "Asha Foundation",
+          quantity: r.quantity,
+          unit: r.unit,
+          status: (r.status === "available" ? "available" : r.status === "allocated" ? "allocated" : "shortage") as ResourceStatus,
+          category: r.category,
+        })));
+      }
+      if (stats) setDbStats(stats);
+    });
+  }, []);
 
   const profile = getAdminProfile();
   const unreadCount = notifications.filter(n => !n.read).length;

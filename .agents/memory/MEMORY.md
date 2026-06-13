@@ -1,0 +1,2 @@
+- [DB integration patterns](db-integration.md) — dbApi.ts in frontend; all dashboards load real data via useEffect on mount; errors silently fall back to local state.
+- [Seed data](seed-data.md) — 8 users, 3 NGOs, 4 volunteers, 6 resources, 3 reports, 7 tasks, 5 donations seeded; migration-backup workflows always fail (expected, stale).

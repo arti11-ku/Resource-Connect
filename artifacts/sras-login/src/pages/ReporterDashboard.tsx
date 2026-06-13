@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { dbApi, type DbReport } from "../lib/dbApi";
 import { motion, AnimatePresence } from "framer-motion";
 import { FadeDown, FadeUp, FadeIn, StaggerList, StaggerItem, HoverCard, MountFade, SlideInHeader, chartTooltipStyle, chartTooltipCursor } from "../lib/AnimatedComponents";
 import {
@@ -1156,6 +1157,19 @@ function ReportsPage() {
   const [showForm, setShowForm] = useState(false);
   const [reportForm, setReportForm] = useState({ title: "", description: "", category: "Task Summary", deadline: "" });
   const [extraReports, setExtraReports] = useState<ReportEntry[]>([]);
+  const [dbReports, setDbReports] = useState<ReportEntry[]>([]);
+
+  useEffect(() => {
+    dbApi.getReports().then((reports: DbReport[]) => {
+      setDbReports(reports.map(r => ({
+        id: r.id,
+        title: r.title,
+        description: r.description,
+        date: new Date(r.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
+        category: r.category,
+      })));
+    }).catch(() => {});
+  }, []);
 
   function downloadCSV() {
     const headers = ["Task", "Volunteer", "Status", "Deadline", "Category"];
@@ -1171,7 +1185,7 @@ function ReportsPage() {
     window.print();
   }
 
-  function handleReportSubmit() {
+  async function handleReportSubmit() {
     if (!reportForm.title.trim() || !reportForm.description.trim()) return;
     const newReport: ReportEntry = {
       id: Date.now(),
@@ -1181,6 +1195,16 @@ function ReportsPage() {
       category: reportForm.category,
     };
     setExtraReports(prev => [newReport, ...prev]);
+    try {
+      await dbApi.createReport({
+        title: reportForm.title,
+        description: reportForm.description,
+        category: reportForm.category,
+        severity: "Medium",
+        location: "N/A",
+        status: "Pending",
+      } as Parameters<typeof dbApi.createReport>[0]);
+    } catch {}
     setReportForm({ title: "", description: "", category: "Task Summary", deadline: "" });
     setShowForm(false);
   }
@@ -1254,10 +1278,10 @@ function ReportsPage() {
 
       <SmartReviewSection />
 
-      {extraReports.length > 0 && (
+      {(dbReports.length > 0 || extraReports.length > 0) && (
         <div className="space-y-3">
-          <h3 className="font-bold text-gray-800 text-sm">Created Reports ({extraReports.length})</h3>
-          {extraReports.map(r => (
+          <h3 className="font-bold text-gray-800 text-sm">Reports ({dbReports.length + extraReports.length})</h3>
+          {[...extraReports, ...dbReports].map(r => (
             <div key={r.id} className="bg-white rounded-2xl p-4 shadow-sm border border-orange-100 flex items-start gap-3">
               <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` }}>
                 <FileText size={16} className="text-white" />

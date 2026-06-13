@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { apiFetch, type BackendTask } from "../lib/api";
+import { dbApi, type DbVolunteer, type DbTask as DbTaskType, type DbResource as DbResourceType } from "../lib/dbApi";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FadeDown, FadeUp, FadeIn, StaggerList, StaggerItem, HoverCard,
@@ -1635,6 +1636,46 @@ export default function NgoDashboard() {
   const [tasks, setTasks] = useState<Task[]>(INIT_TASKS);
   const [proofs, setProofs] = useState<Proof[]>(INIT_PROOFS);
   const [resources, setResources] = useState<Resource[]>(INIT_RESOURCES);
+
+  useEffect(() => {
+    Promise.all([
+      dbApi.getVolunteers().catch(() => null),
+      dbApi.getTasks().catch(() => null),
+      dbApi.getResources().catch(() => null),
+    ]).then(([dbVols, dbTasks, dbRes]) => {
+      if (dbVols && dbVols.length > 0) {
+        setVolunteers(dbVols.map((v: DbVolunteer) => ({
+          id: v.id,
+          name: v.name ?? "Volunteer",
+          contact: v.email ?? "",
+          skills: v.skills ?? [],
+          availability: v.availability ?? "Flexible",
+          assignedTask: undefined,
+        })));
+      }
+      if (dbTasks && dbTasks.length > 0) {
+        setTasks(dbTasks.map((t: DbTaskType) => ({
+          id: t.id,
+          title: t.title,
+          description: t.description,
+          deadline: t.deadline ? new Date(t.deadline).toLocaleDateString("en-IN") : "",
+          priority: (t.priority as "low" | "medium" | "high") ?? "medium",
+          status: (t.status === "in-progress" ? "in-progress" : t.status === "completed" ? "completed" : "assigned") as TaskStatus,
+          assignedTo: t.assignedTo ?? "",
+        })));
+      }
+      if (dbRes && dbRes.length > 0) {
+        setResources(dbRes.map((r: DbResourceType) => ({
+          id: r.id,
+          name: r.resourceName,
+          quantity: r.quantity,
+          unit: r.unit,
+          status: (r.status === "available" ? "available" : r.status === "allocated" ? "allocated" : "depleted") as ResourceStatus,
+          category: r.category,
+        })));
+      }
+    });
+  }, []);
 
   const profile = getNgoProfile();
   const unreadCount = notifications.filter(n => !n.read).length;
