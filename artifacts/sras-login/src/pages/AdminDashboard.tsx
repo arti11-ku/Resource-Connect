@@ -10,7 +10,8 @@ import {
   ShieldCheck, AlertTriangle, BarChart2, User, LogOut, Bell,
   Menu, X, Search, Pencil, Trash2, CheckCircle2, XCircle,
   Eye, Save, Ban, RefreshCw, TrendingUp, Download, Send,
-  Plus, FileText, Flag, Sparkles, Zap, Settings as SettingsIcon, MapPin
+  Plus, FileText, Flag, Sparkles, Zap, Settings as SettingsIcon, MapPin,
+  Database, ChevronDown, ChevronRight, Table2, RefreshCcw
 } from "lucide-react";
 import SettingsPage from "../components/SettingsPage";
 import AIChatbot from "../components/AIChatbot";
@@ -31,7 +32,7 @@ const ORANGE = "#FF7A00";
 const ORANGE_LIGHT = "#FF9A40";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Page = "overview" | "ngos" | "users" | "resources" | "tasks" | "proofs" | "issues" | "reports" | "profile" | "settings" | "resource-map";
+type Page = "overview" | "ngos" | "users" | "resources" | "tasks" | "proofs" | "issues" | "reports" | "profile" | "settings" | "resource-map" | "database";
 type NgoStatus = "pending" | "approved" | "rejected" | "blocked";
 type UserRole = "ngo" | "donor" | "volunteer";
 type UserStatus = "active" | "inactive";
@@ -1174,6 +1175,170 @@ function ProfilePage() {
   );
 }
 
+// ─── Database Viewer ──────────────────────────────────────────────────────────
+const DB_TABLES = [
+  { key: "users",      label: "Users",      color: "bg-blue-500",    fetch: () => dbApi.getUsers().then(r => r.map((u: DbUser) => ({ ID: u.id, Name: u.name, Email: u.email, Role: u.role, Joined: new Date(u.createdAt).toLocaleDateString("en-IN") }))) },
+  { key: "ngos",       label: "NGOs",       color: "bg-orange-500",  fetch: () => dbApi.getNgos().then(r => r.map((n: DbNgo) => ({ ID: n.id, Name: n.ngoName, RegNo: n.registrationNumber, Status: n.status, Address: n.address ?? "" }))) },
+  { key: "volunteers", label: "Volunteers", color: "bg-green-500",   fetch: () => dbApi.getVolunteers().then(r => r.map((v) => ({ ID: v.id, Name: v.name ?? "", Email: v.email ?? "", Skills: (v.skills ?? []).join(", "), Status: v.currentStatus, Location: v.location ?? "" }))) },
+  { key: "resources",  label: "Resources",  color: "bg-teal-500",    fetch: () => dbApi.getResources().then(r => r.map((x: DbResource) => ({ ID: x.id, Name: x.resourceName, Category: x.category, Qty: x.quantity, Unit: x.unit, Status: x.status, Location: x.location ?? "" }))) },
+  { key: "tasks",      label: "Tasks",      color: "bg-purple-500",  fetch: () => dbApi.getTasks().then(r => r.map((t: DbTask) => ({ ID: t.id, Title: t.title, Category: t.category ?? "", Priority: t.priority, Status: t.status, AssignedTo: t.assignedTo ?? "", Points: t.points }))) },
+  { key: "reports",    label: "Reports",    color: "bg-red-500",     fetch: () => dbApi.getReports().then(r => r.map((x) => ({ ID: x.id, Title: x.title, Category: x.category, Severity: x.severity, Status: x.status, Location: x.location }))) },
+  { key: "allocations",label: "AI Allocations", color: "bg-indigo-500", fetch: () => dbApi.getAllocations().then(r => r.map((a) => ({ ID: a.id, Priority: a.priorityLevel, Score: a.priorityScore, Status: a.status, Created: new Date(a.createdAt).toLocaleDateString("en-IN") }))) },
+] as const;
+
+type DbTableKey = typeof DB_TABLES[number]["key"];
+
+function DatabaseViewerPage() {
+  const [activeTable, setActiveTable] = useState<DbTableKey>("users");
+  const [rows, setRows] = useState<Record<string, unknown>[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+
+  async function loadTable(key: DbTableKey) {
+    setActiveTable(key);
+    setLoading(true);
+    setError(null);
+    setSearch("");
+    try {
+      const table = DB_TABLES.find(t => t.key === key)!;
+      const data = await table.fetch();
+      setRows(data as Record<string, unknown>[]);
+    } catch (e) {
+      setError(String(e));
+      setRows([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { loadTable("users"); }, []);
+
+  const columns = rows.length > 0 ? Object.keys(rows[0]) : [];
+  const filtered = search
+    ? rows.filter(r => Object.values(r).some(v => String(v ?? "").toLowerCase().includes(search.toLowerCase())))
+    : rows;
+
+  const activeTableMeta = DB_TABLES.find(t => t.key === activeTable)!;
+
+  return (
+    <MountFade className="space-y-5">
+      <FadeIn>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 mb-1 flex items-center gap-2">
+              <Database size={20} style={{ color: ORANGE }} /> Database Viewer
+            </h2>
+            <p className="text-sm text-gray-400">Browse all live tables from your PostgreSQL database.</p>
+          </div>
+          <button onClick={() => loadTable(activeTable)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-orange-200 text-orange-600 text-sm font-semibold hover:bg-orange-50 transition-colors">
+            <RefreshCcw size={14} /> Refresh
+          </button>
+        </div>
+      </FadeIn>
+
+      {/* Table selector */}
+      <div className="flex flex-wrap gap-2">
+        {DB_TABLES.map(t => (
+          <button key={t.key} onClick={() => loadTable(t.key)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all border ${activeTable === t.key ? "text-white border-transparent shadow-sm" : "bg-white border-gray-200 text-gray-600 hover:border-orange-300 hover:text-orange-600"}`}
+            style={activeTable === t.key ? { background: `linear-gradient(135deg, ${ORANGE}, ${ORANGE_LIGHT})` } : {}}>
+            <Table2 size={13} />
+            {t.label}
+            {activeTable === t.key && !loading && (
+              <span className="ml-1 bg-white/20 text-white text-xs px-1.5 py-0.5 rounded-full font-bold">{filtered.length}</span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Search */}
+      <div className="relative max-w-xs">
+        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input value={search} onChange={e => setSearch(e.target.value)}
+          placeholder={`Search ${activeTableMeta.label}...`}
+          className="w-full pl-9 pr-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-orange-400 bg-white" />
+      </div>
+
+      {/* Table */}
+      <div className="bg-white rounded-2xl shadow-sm border border-orange-50 overflow-hidden">
+        {loading ? (
+          <div className="flex items-center justify-center py-16 gap-3 text-gray-400">
+            <RefreshCcw size={18} className="animate-spin" style={{ color: ORANGE }} />
+            <span className="text-sm font-medium">Loading {activeTableMeta.label}…</span>
+          </div>
+        ) : error ? (
+          <div className="flex items-center justify-center py-16 gap-2 text-red-500 text-sm">
+            <AlertTriangle size={16} /> {error}
+          </div>
+        ) : rows.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 gap-2 text-gray-400">
+            <Database size={32} className="opacity-30" />
+            <p className="text-sm font-medium">No records in this table yet.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100" style={{ background: "linear-gradient(135deg, #fff7f0, #fff)" }}>
+                  {columns.map(col => (
+                    <th key={col} className="text-left px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                      {col}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((row, i) => (
+                  <tr key={i} className={`border-b border-gray-50 transition-colors hover:bg-orange-50/40 ${i % 2 === 0 ? "bg-white" : "bg-gray-50/30"}`}>
+                    {columns.map(col => {
+                      const val = row[col];
+                      const str = String(val ?? "—");
+                      const isStatus = col === "Status" || col === "status";
+                      const isPriority = col === "Priority" || col === "priority";
+                      const isSeverity = col === "Severity" || col === "severity";
+                      const statusColor = isStatus
+                        ? str === "available" || str === "active" || str === "approved" || str === "Available" || str === "Approved" ? "bg-green-100 text-green-700"
+                          : str === "allocated" || str === "in-progress" || str === "Assigned" || str === "Under Review" ? "bg-blue-100 text-blue-700"
+                          : str === "depleted" || str === "rejected" || str === "Rejected" ? "bg-red-100 text-red-700"
+                          : "bg-gray-100 text-gray-600"
+                        : isPriority || isSeverity
+                        ? str === "high" || str === "Critical" || str === "High" ? "bg-red-100 text-red-700"
+                          : str === "medium" || str === "Medium" ? "bg-amber-100 text-amber-700"
+                          : "bg-gray-100 text-gray-600"
+                        : "";
+                      return (
+                        <td key={col} className="px-4 py-3 text-gray-700 whitespace-nowrap max-w-[220px] truncate">
+                          {(isStatus || isPriority || isSeverity) && str !== "—" ? (
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${statusColor}`}>{str}</span>
+                          ) : col === "ID" ? (
+                            <span className="font-mono text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded">{str}</span>
+                          ) : col === "Points" || col === "Score" ? (
+                            <span className="font-bold" style={{ color: ORANGE }}>{str}</span>
+                          ) : (
+                            <span title={str}>{str}</span>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="px-4 py-2.5 border-t border-gray-100 flex items-center justify-between">
+              <span className="text-xs text-gray-400 font-medium">
+                Showing {filtered.length} of {rows.length} records
+              </span>
+              <span className="text-xs text-gray-300">Table: <code className="text-gray-500">{activeTable}</code></span>
+            </div>
+          </div>
+        )}
+      </div>
+    </MountFade>
+  );
+}
+
 // ─── Nav ──────────────────────────────────────────────────────────────────────
 const NAV_ITEMS: { page: Page; icon: React.ElementType; label: string }[] = [
   { page: "overview", icon: LayoutDashboard, label: "Dashboard" },
@@ -1185,6 +1350,7 @@ const NAV_ITEMS: { page: Page; icon: React.ElementType; label: string }[] = [
   { page: "proofs", icon: ShieldCheck, label: "Proof Verification" },
   { page: "issues", icon: AlertTriangle, label: "Issues & Alerts" },
   { page: "reports", icon: BarChart2, label: "Reports" },
+  { page: "database", icon: Database, label: "Database" },
   { page: "profile", icon: User, label: "Profile" },
   { page: "settings", icon: SettingsIcon, label: "Settings" },
 ];
@@ -1386,6 +1552,7 @@ export default function AdminDashboard() {
               {activePage === "proofs" && <ProofVerificationPage proofs={proofs} setProofs={setProofs} />}
               {activePage === "issues" && <IssuesPage issues={issues} setIssues={setIssues} />}
               {activePage === "reports" && <ReportsPage ngos={ngos} users={users} tasks={tasks} resources={resources} />}
+              {activePage === "database" && <DatabaseViewerPage />}
               {activePage === "profile" && <ProfilePage />}
               {activePage === "settings" && <SettingsPage role="Admin" />}
             </motion.div>
