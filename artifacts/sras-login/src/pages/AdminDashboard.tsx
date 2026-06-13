@@ -19,6 +19,7 @@ import FloatingBackground from "../components/FloatingBackground";
 import ResourceHeatmap from "../components/ResourceHeatmap";
 import { dashboardGalleryImages } from "../lib/dashboardGallery";
 import { allocateTasks, verifyProof, type AIAllocation, type AIPriority } from "../lib/ai";
+import AIAdminOverview from "../components/AIAdminOverview";
 import {
   BarChart, Bar, PieChart, Pie, Cell, LineChart, Line,
   XAxis, YAxis, Tooltip, ResponsiveContainer, Legend
@@ -313,7 +314,15 @@ function OverviewPage({ ngos, users, tasks, resources, onNavigate }: {
         </HoverCard>
       </FadeUp>
 
-      <FadeUp delay={0.18}>
+      <FadeUp delay={0.2}>
+        <AIAdminOverview
+          resources={resources.map(r => ({ name: r.name, quantity: r.quantity, status: r.status }))}
+          volunteers={users.map(u => ({ name: u.name, skills: [] }))}
+          tasks={tasks.map(t => ({ title: t.title, status: t.status, priority: t.priority }))}
+        />
+      </FadeUp>
+
+      <FadeUp delay={0.22}>
         <ImageMarquee images={dashboardGalleryImages} />
       </FadeUp>
     </MountFade>

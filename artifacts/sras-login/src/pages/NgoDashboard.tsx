@@ -25,6 +25,7 @@ import ResourceHeatmap from "../components/ResourceHeatmap";
 import { dashboardGalleryImages } from "../lib/dashboardGallery";
 import { allocateTasks, predictPriority, verifyProof, type AIAllocation } from "../lib/ai";
 import { loadReviewImages, subscribeToReviewImages, type ReviewImage, type ReviewCategory } from "../lib/smartReviewStore";
+import AIAllocationPanel from "../components/AIAllocationPanel";
 
 const ORANGE = "#FF7A00";
 const ORANGE_LIGHT = "#FF9A40";
@@ -394,7 +395,16 @@ function OverviewPage({ volunteers, tasks, resources, onNavigate }: {
         </HoverCard>
       </FadeUp>
 
-      <FadeUp delay={0.18}>
+      <FadeUp delay={0.2}>
+        <AIAllocationPanel
+          defaultReport={{ type: "Flood", affected_people: 250, severity: "High", location: "Mumbai, Maharashtra" }}
+          resources={resources.map(r => ({ name: r.name, quantity: r.quantity }))}
+          volunteers={volunteers.map(v => ({ name: v.name, skills: v.skills, availability: v.availability }))}
+          onApprove={(allocation) => console.log("AI allocation approved", allocation)}
+        />
+      </FadeUp>
+
+      <FadeUp delay={0.22}>
         <ImageMarquee images={dashboardGalleryImages} />
       </FadeUp>
     </MountFade>

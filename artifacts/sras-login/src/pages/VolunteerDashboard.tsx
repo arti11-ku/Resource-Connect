@@ -25,6 +25,7 @@ import ImageMarquee from "../components/ImageMarquee";
 import FloatingBackground from "../components/FloatingBackground";
 import ResourceHeatmap from "../components/ResourceHeatmap";
 import { recommendTasks, verifyProof, type AIPriority } from "../lib/ai";
+import AIVolunteerRecommendations from "../components/AIVolunteerRecommendations";
 
 const volunteerCarouselImages = [
   { src: gallery1, alt: "Education for All — Sahara volunteers teaching children" },
@@ -468,6 +469,27 @@ function DashboardPage({ onNavigate, myTasksList, totalPoints, tasksCompleted, p
             );
           })()}
         </div>
+      </FadeUp>
+
+      <FadeUp delay={0.09}>
+        <AIVolunteerRecommendations
+          volunteer={{
+            name: profile.name,
+            skills: profile.skills,
+            location: profile.location,
+            pastCategories: ["Healthcare", "Environment"],
+          }}
+          tasks={availableTasks.map(t => ({
+            id: t.id,
+            title: t.title,
+            description: t.description,
+            category: t.category,
+            skills: t.skills,
+            location: t.location,
+            urgency: t.urgency,
+          }))}
+          onAccept={() => onNavigate("available-tasks")}
+        />
       </FadeUp>
 
       <FadeUp delay={0.1}>
